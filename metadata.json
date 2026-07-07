@@ -1,0 +1,6 @@
+{
+  "name": "Daily Rewards",
+  "description": "Responsive Web application with Google Sign-In, Cloud Firestore, and 24-hour claim timers, styled with modern Tailwind CSS and premium animations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

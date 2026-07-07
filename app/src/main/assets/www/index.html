@@ -1,0 +1,2048 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Rewards - Web Ledger</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cosmicBg: '#0D1117',
+                        cosmicSurface: '#161B22',
+                        cosmicSurfaceVariant: '#21262D',
+                        goldPrimary: '#FFD700',
+                        goldLight: '#FFF176',
+                        amberAccent: '#FFFF00',
+                        emeraldSuccess: '#00E676',
+                        borderDark: '#30363D'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Confetti Celebration -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google AdSense Mock/Template Integration -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-mock-client-id" crossorigin="anonymous"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0D1117;
+            color: #F0F6FC;
+        }
+        .jetbrains-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .gold-glow {
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.25);
+        }
+        .gold-glow-button {
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+        .gold-glow-button:hover:not(:disabled) {
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.65);
+            transform: scale(1.03);
+        }
+        .radial-shimmer {
+            background: radial-gradient(circle at center, rgba(255, 215, 0, 0.15) 0%, transparent 70%);
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-10px) scale(1.03); }
+        }
+        .floating-chest {
+            animation: float 4s ease-in-out infinite;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0D1117;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #30363D;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8B949E;
+        }
+    </style>
+</head>
+<body class="min-h-screen relative overflow-x-hidden flex flex-col justify-between">
+
+    <!-- Firebase SDK Compat via CDN -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <!-- Background glowing orbs -->
+    <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-yellow-500/10 blur-[120px] pointer-events-none"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none"></div>
+
+    <!-- Navigation Header -->
+    <header class="border-b border-borderDark bg-cosmicSurface/80 backdrop-blur-md sticky top-0 z-40 w-full transition-all duration-300">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-goldPrimary/10 border border-goldPrimary/30 flex items-center justify-center text-xl shadow-inner">
+                    🪙
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-white flex items-center">
+                        Daily Rewards <span class="ml-2 text-[10px] bg-goldPrimary/10 text-goldPrimary border border-goldPrimary/30 px-2 py-0.5 rounded-full font-bold">PRO</span>
+                    </h1>
+                    <p class="text-[10px] text-gray-400">Secure Web Coin Ledger</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-2">
+                <!-- Connection Badge -->
+                <div id="connectionBadge" class="flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-orange-500/10 text-orange-400 border border-orange-500/20 cursor-pointer" onclick="toggleConfigDrawer(true)">
+                    <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                    <span id="connectionBadgeText">Local Sandbox</span>
+                </div>
+
+                <!-- Custom Firebase Setup Button -->
+                <button onclick="toggleConfigDrawer(true)" class="p-2 rounded-lg bg-cosmicSurfaceVariant hover:bg-gray-700 text-gray-300 border border-borderDark transition-all" title="Firebase Settings">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-grow w-full flex flex-col justify-start">
+        
+        <!-- 1. LOGIN SCREEN -->
+        <section id="loginScreen" class="w-full flex flex-col items-center py-6">
+            <!-- Badge -->
+            <div class="inline-flex items-center space-x-2 bg-goldPrimary/10 border border-goldPrimary/20 px-3 py-1.5 rounded-full mb-6">
+                <i data-lucide="sparkles" class="w-4 h-4 text-goldPrimary"></i>
+                <span class="text-xs text-goldPrimary font-extrabold uppercase tracking-widest">Rewards Program</span>
+            </div>
+
+            <h2 class="text-4xl md:text-5xl font-black text-center text-white leading-tight mb-3">
+                Stack Gold Coins<br class="hidden md:block"> Every Single Day
+            </h2>
+            <p class="text-center text-gray-400 max-w-md mx-auto mb-10 text-sm md:text-base">
+                Claim free gold coins every 24 hours, watch rewarded videos, and cash out securely to your UPI ID.
+            </p>
+
+            <!-- Hero Art Chest -->
+            <div class="relative w-64 h-64 flex items-center justify-center mb-8 floating-chest">
+                <div class="absolute inset-0 radial-shimmer rounded-full"></div>
+                <div class="w-48 h-48 rounded-full bg-gradient-to-tr from-goldPrimary/20 to-yellow-300/15 flex items-center justify-center border border-goldPrimary/30 shadow-2xl relative">
+                    <div class="w-36 h-36 rounded-full bg-gradient-to-tr from-yellow-600 via-goldPrimary to-goldLight border-4 border-yellow-300/60 shadow-xl flex flex-col items-center justify-center relative">
+                        <div class="absolute inset-2 border border-dashed border-yellow-200/50 rounded-full"></div>
+                        <span class="text-5xl select-none drop-shadow-md">🪙</span>
+                        <div class="absolute bottom-4 bg-black/40 backdrop-blur-sm px-3 py-0.5 rounded-full border border-yellow-200/20">
+                            <span class="text-[10px] font-extrabold text-goldLight tracking-widest">+10 DAILY</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Login Cards / CTA Container -->
+            <div class="w-full max-w-md bg-cosmicSurface border border-borderDark rounded-2xl p-6 md:p-8 shadow-xl">
+                <!-- Google Sign In Button -->
+                <button id="googleLoginBtn" onclick="loginWithGoogle()" class="w-full h-14 bg-white hover:bg-gray-100 text-gray-900 rounded-xl font-bold flex items-center justify-center space-x-3 transition-all duration-300 shadow-lg mb-6">
+                    <svg class="w-5 h-5" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v3.92h6.61c-.29 1.5-.14 2.64-1.51 3.55v2.91h2.44c1.43-1.32 2.25-3.27 2.25-5.51z"/>
+                        <path fill="#34A853" d="M12 24c3.24 0 5.97-1.08 7.96-2.91l-2.44-2.91c-.83.56-1.92.93-3.13.93-2.39 0-4.41-1.61-5.14-3.77H1.39v3.01C3.37 21.09 7.42 24 12 24z"/>
+                        <path fill="#FBBC05" d="M6.86 15.34a7.18 7.18 0 0 1 0-4.68V7.65H1.39a11.94 11.94 0 0 0 0 8.7l5.47-3.01z"/>
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.43-3.43C17.96 1.19 15.24 0 12 0 7.42 0 3.37 2.91 1.39 6.86l5.47 3.01c.73-2.16 2.75-3.77 5.14-3.77z"/>
+                    </svg>
+                    <span>Sign In with Google</span>
+                </button>
+
+                <div class="relative flex py-2 items-center">
+                    <div class="flex-grow border-t border-borderDark"></div>
+                    <span class="flex-shrink mx-4 text-gray-500 text-xs font-bold uppercase tracking-widest">Or Sandbox</span>
+                    <div class="flex-grow border-t border-borderDark"></div>
+                </div>
+
+                <div class="mt-4">
+                    <p class="text-xs text-gray-400 mb-4 text-center">
+                        No Firebase project configured yet? Enter simulated sandbox to test daily timers, ad claims, and withdraw processing instantly.
+                    </p>
+                    
+                    <div class="space-y-3">
+                        <input type="text" id="sandboxName" placeholder="Enter custom display name" value="Sandbox Explorer" class="w-full h-11 bg-cosmicSurfaceVariant border border-borderDark rounded-xl px-4 text-sm text-white focus:outline-none focus:border-goldPrimary transition-all">
+                        <input type="email" id="sandboxEmail" placeholder="Enter email address" value="sandbox@example.com" class="w-full h-11 bg-cosmicSurfaceVariant border border-borderDark rounded-xl px-4 text-sm text-white focus:outline-none focus:border-goldPrimary transition-all">
+                        <button onclick="loginSandbox()" class="w-full h-11 bg-gradient-to-r from-goldPrimary to-amber-500 hover:from-goldLight hover:to-goldPrimary text-cosmicBg font-extrabold rounded-xl text-sm transition-all shadow-md flex items-center justify-center space-x-2">
+                            <i data-lucide="play" class="w-4 h-4 fill-cosmicBg"></i>
+                            <span>Enter Simulated Sandbox</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Overview Grid Section -->
+            <div class="w-full max-w-5xl mt-12 grid grid-cols-1 md:grid-cols-4 gap-5 px-4">
+                <!-- Daily Reward Highlight -->
+                <div class="bg-cosmicSurface/60 border border-borderDark rounded-2xl p-5 flex flex-col items-center text-center hover:border-goldPrimary/40 transition-all duration-300">
+                    <div class="w-11 h-11 rounded-full bg-goldPrimary/10 border border-goldPrimary/20 flex items-center justify-center text-goldPrimary mb-3">
+                        <i data-lucide="gift" class="w-5.5 h-5.5"></i>
+                    </div>
+                    <h4 class="text-sm font-extrabold text-white mb-1.5">Daily Reward</h4>
+                    <p class="text-[11px] text-gray-400 leading-relaxed">Claim your recurring coin reward every 24 hours with precise local cooldown countdown timers.</p>
+                </div>
+                
+                <!-- Watch & Earn Highlight -->
+                <div class="bg-cosmicSurface/60 border border-borderDark rounded-2xl p-5 flex flex-col items-center text-center hover:border-goldPrimary/40 transition-all duration-300">
+                    <div class="w-11 h-11 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-3">
+                        <i data-lucide="play-circle" class="w-5.5 h-5.5"></i>
+                    </div>
+                    <h4 class="text-sm font-extrabold text-white mb-1.5">Watch & Earn</h4>
+                    <p class="text-[11px] text-gray-400 leading-relaxed">Complete dynamic 15-second sponsored ad videos to stack unlimited coin values infinitely.</p>
+                </div>
+
+                <!-- Withdrawal Portal Highlight -->
+                <div class="bg-cosmicSurface/60 border border-borderDark rounded-2xl p-5 flex flex-col items-center text-center hover:border-goldPrimary/40 transition-all duration-300">
+                    <div class="w-11 h-11 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3">
+                        <i data-lucide="wallet" class="w-5.5 h-5.5"></i>
+                    </div>
+                    <h4 class="text-sm font-extrabold text-white mb-1.5">Withdrawal Portal</h4>
+                    <p class="text-[11px] text-gray-400 leading-relaxed">Request secure payouts directly to your UPI address instantly upon accumulating 1,000 coins.</p>
+                </div>
+
+                <!-- Admin Management Highlight -->
+                <div class="bg-cosmicSurface/60 border border-borderDark rounded-2xl p-5 flex flex-col items-center text-center hover:border-goldPrimary/40 transition-all duration-300">
+                    <div class="w-11 h-11 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 mb-3">
+                        <i data-lucide="shield-check" class="w-5.5 h-5.5"></i>
+                    </div>
+                    <h4 class="text-sm font-extrabold text-white mb-1.5">Admin Control Hub</h4>
+                    <p class="text-[11px] text-gray-400 leading-relaxed">Master-protected portal for admins to easily review, filter, approve, and reject real-time payouts.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. DASHBOARD SCREEN WITH NAVIGATION -->
+        <section id="dashboardScreen" class="w-full hidden space-y-6">
+            
+            <!-- User Header Card -->
+            <div class="w-full bg-cosmicSurface border border-borderDark rounded-2xl p-4 md:p-6 flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg">
+                <div class="flex items-center space-x-4 w-full md:w-auto">
+                    <!-- Avatar -->
+                    <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-goldPrimary to-amber-500 border-2 border-white/20 flex items-center justify-center text-xl font-black text-cosmicBg shadow-md shrink-0" id="userAvatar">
+                        SE
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-xs text-gray-400">Welcome back,</p>
+                        <h3 class="text-lg font-extrabold text-white truncate" id="userDisplayName">Sandbox Explorer</h3>
+                        <p class="text-[11px] text-gray-500 truncate" id="userEmail">sandbox@example.com</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs / Pills -->
+                <div class="flex flex-wrap items-center justify-center gap-1.5 bg-cosmicBg/60 p-1 border border-borderDark rounded-xl w-full md:w-auto">
+                    <button onclick="switchTab('daily')" id="tabBtn-daily" class="flex items-center space-x-1 px-3 py-2 rounded-lg text-xs font-bold transition-all bg-goldPrimary text-cosmicBg">
+                        <i data-lucide="gift" class="w-4 h-4"></i>
+                        <span>Daily claim</span>
+                    </button>
+                    <button onclick="switchTab('ads')" id="tabBtn-ads" class="flex items-center space-x-1 px-3 py-2 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white hover:bg-cosmicSurfaceVariant">
+                        <i data-lucide="play-circle" class="w-4 h-4"></i>
+                        <span>Watch & Earn</span>
+                    </button>
+                    <button onclick="switchTab('withdraw')" id="tabBtn-withdraw" class="flex items-center space-x-1 px-3 py-2 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white hover:bg-cosmicSurfaceVariant">
+                        <i data-lucide="wallet" class="w-4 h-4"></i>
+                        <span>Withdraw</span>
+                    </button>
+                    <button onclick="switchTab('admin')" id="tabBtn-admin" class="flex items-center space-x-1 px-3 py-2 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white hover:bg-cosmicSurfaceVariant relative">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i>
+                        <span>Admin Panel</span>
+                        <span id="pendingAdminBadge" class="hidden absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full"></span>
+                    </button>
+                </div>
+
+                <!-- Balance Pill & Logout -->
+                <div class="flex flex-col gap-2.5 w-full md:w-auto shrink-0">
+                    <div class="flex items-center space-x-3 justify-between w-full">
+                        <div class="flex items-center space-x-3 bg-cosmicSurfaceVariant border border-borderDark px-4 py-2 rounded-xl shadow-inner shrink-0 flex-grow">
+                            <span class="text-xl">🪙</span>
+                            <div>
+                                <div class="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Coin Balance</div>
+                                <div class="text-base font-black text-goldPrimary" id="userCoinBalance">0</div>
+                            </div>
+                        </div>
+
+                        <!-- Logout Button -->
+                        <button onclick="logout()" class="p-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 transition-all shrink-0" title="Sign Out">
+                            <i data-lucide="log-out" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Embedded Quick Actions below Coin Balance -->
+                    <div class="flex gap-2 w-full">
+                        <button onclick="switchTab('ads')" class="flex-1 py-1.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-cosmicBg font-extrabold text-xs flex items-center justify-center space-x-1.5 transition-all shadow-sm">
+                            <i data-lucide="play-circle" class="w-4 h-4 text-cosmicBg"></i>
+                            <span>Watch Ads (+10)</span>
+                        </button>
+                        <button onclick="switchTab('withdraw')" class="flex-1 py-1.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-extrabold text-xs flex items-center justify-center space-x-1.5 transition-all shadow-sm">
+                            <i data-lucide="wallet" class="w-4 h-4"></i>
+                            <span>Withdraw</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AdSense Top Banner Slot -->
+            <div class="w-full bg-cosmicSurface/40 border border-borderDark rounded-xl p-3 text-center relative overflow-hidden">
+                <span class="absolute top-1 left-2 text-[8px] tracking-widest text-gray-600 font-bold uppercase">Advertisement</span>
+                <!-- Google AdSense Tag -->
+                <ins class="adsbygoogle"
+                     style="display:block; text-align:center;"
+                     data-ad-layout="in-article"
+                     data-ad-format="fluid"
+                     data-ad-client="ca-pub-mock-client-id"
+                     data-ad-slot="1234567890"></ins>
+                <div class="h-16 flex items-center justify-center border border-dashed border-gray-700 rounded-lg bg-cosmicBg/20">
+                    <p class="text-xs text-gray-500 flex items-center font-semibold">
+                        <i data-lucide="layout" class="w-4 h-4 mr-1.5 text-goldPrimary"></i> Google AdSense Banner Slot (Responsive Position)
+                    </p>
+                </div>
+            </div>
+
+            <!-- ================= TAB CONTENT 1: DAILY REWARD ================= -->
+            <div id="tabContent-daily" class="space-y-6">
+                <!-- Main Daily Reward Claim Card -->
+                <div class="w-full bg-gradient-to-b from-[#1E2638] to-cosmicSurface border border-borderDark rounded-3xl p-6 md:p-8 flex flex-col items-center relative overflow-hidden shadow-2xl">
+                    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-goldPrimary/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                    <div class="inline-flex items-center space-x-1 px-3 py-1 bg-goldPrimary/10 text-goldPrimary rounded-full text-xs font-bold border border-goldPrimary/20 mb-4 z-10">
+                        <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                        <span>24 HOUR CYCLE</span>
+                    </div>
+
+                    <h3 class="text-2xl font-black text-white mb-2 z-10 text-center" id="rewardTitle">Daily Reward Ready!</h3>
+                    <p class="text-xs text-gray-400 max-w-sm text-center mb-8 z-10" id="rewardSubtitle">
+                        Claim your daily +10 gold coins to level up your ledger. Return every 24 hours to claim your bonus again!
+                    </p>
+
+                    <!-- Timer / Claim Area -->
+                    <div class="w-full max-w-xs flex flex-col items-center z-10">
+                        <!-- Giant claimable Coin button / Cooldown clock -->
+                        <div id="coinInteractionContainer" class="w-44 h-44 flex items-center justify-center relative cursor-pointer mb-6 select-none animate-bounce" onclick="triggerClaimAttempt()">
+                            <div id="glowRipple" class="absolute inset-0 rounded-full bg-goldPrimary/15 border border-goldPrimary/30 scale-110 animate-ping pointer-events-none"></div>
+                            
+                            <!-- Coin Face -->
+                            <div id="claimCoinFace" class="w-32 h-32 rounded-full bg-gradient-to-tr from-yellow-600 via-goldPrimary to-goldLight border-4 border-yellow-300 shadow-xl flex flex-col items-center justify-center transition-all duration-300 relative">
+                                <span id="claimCoinEmoji" class="text-5xl drop-shadow-lg">🪙</span>
+                                <span id="claimCoinBadge" class="absolute bottom-3 bg-cosmicBg/80 px-2.5 py-0.5 border border-goldPrimary/30 rounded-full text-[10px] font-black text-goldPrimary tracking-widest">+10</span>
+                            </div>
+                        </div>
+
+                        <!-- Countdown clock (if on cooldown) -->
+                        <div id="cooldownClockContainer" class="hidden text-center mb-6">
+                            <div class="jetbrains-mono text-2xl font-black tracking-widest text-white py-2 px-6 bg-cosmicSurface border border-borderDark rounded-2xl inline-block" id="cooldownTimer">
+                                24 : 00 : 00
+                            </div>
+                            <p class="text-[10px] text-gray-500 font-semibold tracking-wider mt-2 uppercase">Remaining Cooldown</p>
+                        </div>
+
+                        <!-- Progress Bar for Cooldown -->
+                        <div id="cooldownProgressContainer" class="w-full hidden mb-4">
+                            <div class="w-full bg-cosmicBg rounded-full h-2.5 overflow-hidden border border-borderDark">
+                                <div id="cooldownProgressBar" class="bg-gradient-to-r from-goldPrimary to-amber-500 h-2.5 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                            </div>
+                            <div class="flex justify-between text-[10px] text-gray-500 font-bold mt-1.5">
+                                <span>Last Claimed</span>
+                                <span id="cooldownProgressText">0% Complete</span>
+                            </div>
+                        </div>
+
+                        <!-- Claim CTA Button -->
+                        <button id="claimRewardBtn" onclick="claimDailyReward()" class="w-full h-14 bg-gradient-to-r from-goldPrimary to-amber-500 text-cosmicBg font-black text-base rounded-2xl transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl select-none z-10">
+                            <i data-lucide="star" class="w-5 h-5 fill-cosmicBg"></i>
+                            <span>CLAIM 10 COINS</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Reward Streak Progression -->
+                <div class="w-full bg-cosmicSurface border border-borderDark rounded-2xl p-5 md:p-6 shadow-md">
+                    <h4 class="text-xs font-black text-gray-400 tracking-wider uppercase mb-4 flex items-center">
+                        <i data-lucide="trending-up" class="w-4 h-4 text-goldPrimary mr-1.5"></i>
+                        WEEKLY BONUS TRACKER
+                    </h4>
+                    <div class="grid grid-cols-7 gap-2 md:gap-3">
+                        <template id="streakDayTemplate">
+                            <div class="flex flex-col items-center">
+                                <div class="day-circle w-10 h-10 rounded-full flex items-center justify-center border text-xs font-bold transition-all shadow-sm">
+                                    +10
+                                </div>
+                                <span class="day-label text-[9px] text-gray-500 font-semibold mt-1.5">Day X</span>
+                            </div>
+                        </template>
+                        <div id="streakDaysContainer" class="col-span-7 grid grid-cols-7 text-center"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= TAB CONTENT 2: WATCH ADS & EARN ================= -->
+            <div id="tabContent-ads" class="space-y-6 hidden">
+                <div class="bg-gradient-to-tr from-cosmicSurface to-cosmicSurfaceVariant border border-borderDark rounded-3xl p-6 relative overflow-hidden">
+                    <div class="absolute -top-12 -right-12 w-32 h-32 bg-amberAccent/10 rounded-full blur-2xl"></div>
+                    
+                    <div class="flex items-center space-x-3 mb-4">
+                        <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amberAccent">
+                            <i data-lucide="tv" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-white">Watch Rewarded Ads</h3>
+                            <p class="text-xs text-gray-400">Complete standard ad videos to gain +10 gold coins infinitely!</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                        <!-- Ad Provider Card 1 -->
+                        <div class="bg-cosmicBg/60 border border-borderDark hover:border-goldPrimary/40 rounded-2xl p-5 flex flex-col justify-between transition-all group">
+                            <div>
+                                <span class="text-[10px] font-extrabold text-goldPrimary tracking-widest bg-goldPrimary/10 border border-goldPrimary/20 px-2 py-0.5 rounded">HIGH VALUE</span>
+                                <h4 class="text-base font-bold text-white mt-2">Ad-Colony Premium Video</h4>
+                                <p class="text-xs text-gray-400 mt-1">Watch a 15-second visual dynamic trailer ad.</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-6 pt-4 border-t border-borderDark/40">
+                                <span class="text-sm font-black text-goldPrimary flex items-center"><span class="mr-1">🪙</span>+10 Coins</span>
+                                <button onclick="startAdSession('Ad-Colony Video Stream')" class="px-4 py-2 bg-gradient-to-r from-goldPrimary to-amber-500 hover:from-goldLight hover:to-goldPrimary text-cosmicBg font-extrabold text-xs rounded-xl transition-all shadow group-hover:scale-105">
+                                    Watch & Earn
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Ad Provider Card 2 -->
+                        <div class="bg-cosmicBg/60 border border-borderDark hover:border-goldPrimary/40 rounded-2xl p-5 flex flex-col justify-between transition-all group">
+                            <div>
+                                <span class="text-[10px] font-extrabold text-emerald-400 tracking-widest bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">FAST LOAD</span>
+                                <h4 class="text-base font-bold text-white mt-2">Unity Ad Network Stream</h4>
+                                <p class="text-xs text-gray-400 mt-1">A fast-paced casual application ad demonstration.</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-6 pt-4 border-t border-borderDark/40">
+                                <span class="text-sm font-black text-goldPrimary flex items-center"><span class="mr-1">🪙</span>+10 Coins</span>
+                                <button onclick="startAdSession('Unity Ad Network')" class="px-4 py-2 bg-gradient-to-r from-goldPrimary to-amber-500 hover:from-goldLight hover:to-goldPrimary text-cosmicBg font-extrabold text-xs rounded-xl transition-all shadow group-hover:scale-105">
+                                    Watch & Earn
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Ad Provider Card 3 -->
+                        <div class="bg-cosmicBg/60 border border-borderDark hover:border-goldPrimary/40 rounded-2xl p-5 flex flex-col justify-between transition-all group">
+                            <div>
+                                <span class="text-[10px] font-extrabold text-blue-400 tracking-widest bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded">RECOMMENDED</span>
+                                <h4 class="text-base font-bold text-white mt-2">AppLovin Interstitial Reward</h4>
+                                <p class="text-xs text-gray-400 mt-1">Short engaging game preview. Earn +10 upon completion.</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-6 pt-4 border-t border-borderDark/40">
+                                <span class="text-sm font-black text-goldPrimary flex items-center"><span class="mr-1">🪙</span>+10 Coins</span>
+                                <button onclick="startAdSession('AppLovin Showcase')" class="px-4 py-2 bg-gradient-to-r from-goldPrimary to-amber-500 hover:from-goldLight hover:to-goldPrimary text-cosmicBg font-extrabold text-xs rounded-xl transition-all shadow group-hover:scale-105">
+                                    Watch & Earn
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Ad Provider Card 4 -->
+                        <div class="bg-cosmicBg/60 border border-borderDark hover:border-goldPrimary/40 rounded-2xl p-5 flex flex-col justify-between transition-all group">
+                            <div>
+                                <span class="text-[10px] font-extrabold text-purple-400 tracking-widest bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded">NEW INTEGRATION</span>
+                                <h4 class="text-base font-bold text-white mt-2">Fyber Brand Offer</h4>
+                                <p class="text-xs text-gray-400 mt-1">High-definition marketing partner clip.</p>
+                            </div>
+                            <div class="flex items-center justify-between mt-6 pt-4 border-t border-borderDark/40">
+                                <span class="text-sm font-black text-goldPrimary flex items-center"><span class="mr-1">🪙</span>+10 Coins</span>
+                                <button onclick="startAdSession('Fyber Sponsor Clip')" class="px-4 py-2 bg-gradient-to-r from-goldPrimary to-amber-500 hover:from-goldLight hover:to-goldPrimary text-cosmicBg font-extrabold text-xs rounded-xl transition-all shadow group-hover:scale-105">
+                                    Watch & Earn
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Google AdSense Intermediate Banner -->
+                <div class="w-full bg-cosmicSurface/40 border border-borderDark rounded-xl p-3 text-center relative overflow-hidden">
+                    <span class="absolute top-1 left-2 text-[8px] tracking-widest text-gray-600 font-bold uppercase">Advertisement</span>
+                    <ins class="adsbygoogle"
+                         style="display:block"
+                         data-ad-client="ca-pub-mock-client-id"
+                         data-ad-slot="9876543210"
+                         data-ad-format="auto"
+                         data-full-width-responsive="true"></ins>
+                    <div class="h-16 flex items-center justify-center border border-dashed border-gray-700 rounded-lg bg-cosmicBg/20">
+                        <p class="text-xs text-gray-500 flex items-center font-semibold">
+                            <i data-lucide="layout" class="w-4 h-4 mr-1.5 text-goldPrimary"></i> Google AdSense Banner (In-Feed Responsive Slot)
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= TAB CONTENT 3: WITHDRAWAL PORTAL ================= -->
+            <div id="tabContent-withdraw" class="space-y-6 hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    
+                    <!-- Left: Request Withdrawal form -->
+                    <div class="lg:col-span-1 bg-cosmicSurface border border-borderDark rounded-2xl p-6 shadow-md h-fit">
+                        <div class="flex items-center space-x-2.5 mb-4">
+                            <div class="p-2 bg-goldPrimary/10 border border-goldPrimary/20 rounded-xl text-goldPrimary">
+                                <i data-lucide="arrow-up-right" class="w-5 h-5"></i>
+                            </div>
+                            <h3 class="text-lg font-bold text-white">Request Payout</h3>
+                        </div>
+
+                        <!-- Minimum withdrawal hint -->
+                        <div class="bg-goldPrimary/5 border border-goldPrimary/20 rounded-xl p-3 mb-5 text-xs text-goldLight flex items-start gap-2.5">
+                            <i data-lucide="alert-circle" class="w-4 h-4 text-goldPrimary shrink-0 mt-0.5"></i>
+                            <div>
+                                <span class="font-bold block">Withdrawal Requirement</span>
+                                Minimum payout is <span class="font-bold underline text-white">1000 Coins</span>. Coins remain in your balance and are only deducted *after* an admin approves the request.
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Your Current Coins</label>
+                                <div class="w-full bg-cosmicSurfaceVariant border border-borderDark rounded-xl h-11 px-4 flex items-center justify-between text-sm">
+                                    <span class="text-gray-400 font-medium">Available Ledger</span>
+                                    <span class="text-goldPrimary font-black text-base" id="withdrawAvailableCoins">0 Coins</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">UPI Address (ID)</label>
+                                <div class="relative">
+                                    <input type="text" id="payoutUpiId" placeholder="username@upi or mobile@paytm" class="w-full h-11 bg-cosmicBg border border-borderDark focus:border-goldPrimary rounded-xl pl-10 pr-4 text-sm text-white focus:outline-none transition-all">
+                                    <i data-lucide="at-sign" class="absolute left-3.5 top-3.5 w-4 h-4 text-gray-500"></i>
+                                </div>
+                                <p class="text-[10px] text-gray-500 mt-1">Please double check your correct UPI format to ensure payment delivery.</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Coins to Withdraw</label>
+                                <div class="relative">
+                                    <input type="number" id="payoutAmount" placeholder="1000" min="1000" class="w-full h-11 bg-cosmicBg border border-borderDark focus:border-goldPrimary rounded-xl pl-10 pr-4 text-sm text-white focus:outline-none transition-all">
+                                    <span class="absolute left-3.5 top-3.5 text-xs">🪙</span>
+                                </div>
+                                <p class="text-[10px] text-gray-500 mt-1">Minimum: 1000 coins (Equals ₹10.00 valuation)</p>
+                            </div>
+
+                            <button onclick="submitWithdrawalRequest()" class="w-full h-12 bg-gradient-to-r from-goldPrimary to-amber-500 hover:from-goldLight hover:to-goldPrimary text-cosmicBg font-black text-sm rounded-xl transition-all shadow-md flex items-center justify-center space-x-2">
+                                <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                                <span>Submit Request</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right: Withdrawal Requests History list -->
+                    <div class="lg:col-span-2 bg-cosmicSurface border border-borderDark rounded-2xl p-6 shadow-md flex flex-col min-h-[380px]">
+                        <div class="flex items-center justify-between border-b border-borderDark pb-4 mb-4">
+                            <div class="flex items-center space-x-2">
+                                <i data-lucide="history" class="text-goldPrimary w-5 h-5"></i>
+                                <h3 class="text-lg font-bold text-white">My Withdrawal Requests</h3>
+                            </div>
+                            <span class="text-[10px] bg-cosmicSurfaceVariant px-2 py-1 rounded border border-borderDark text-gray-400 font-bold uppercase tracking-wider" id="withdrawCountText">0 Requests</span>
+                        </div>
+
+                        <!-- Requests list container -->
+                        <div class="flex-grow overflow-y-auto max-h-[350px] space-y-3 pr-1" id="payoutHistoryContainer">
+                            <!-- Empty State -->
+                            <div class="h-full flex flex-col items-center justify-center text-center py-12 text-gray-500">
+                                <i data-lucide="wallet" class="w-12 h-12 text-gray-600 mb-2"></i>
+                                <p class="text-sm font-semibold">No withdrawals requested yet</p>
+                                <p class="text-xs text-gray-600 max-w-xs mt-1">Gain at least 1000 coins and submit your payout form to track processing status.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= TAB CONTENT 4: SECURE ADMIN PANEL ================= -->
+            <div id="tabContent-admin" class="space-y-6 hidden">
+                
+                <!-- Admin Lock Gate screen -->
+                <div id="adminAuthGate" class="max-w-md mx-auto bg-cosmicSurface border border-borderDark rounded-2xl p-6 md:p-8 shadow-2xl text-center">
+                    <div class="w-12 h-12 rounded-xl bg-goldPrimary/10 border border-goldPrimary/30 flex items-center justify-center text-goldPrimary mx-auto mb-4">
+                        <i data-lucide="lock" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-xl font-extrabold text-white">Admin Authentication</h3>
+                    <p class="text-xs text-gray-400 mt-1 mb-6">Enter the master admin passcode to view, approve, and process user cashout requests.</p>
+
+                    <div class="space-y-4">
+                        <div>
+                            <input type="password" id="adminPasscode" placeholder="Enter Admin Passcode (Default: ADMIN777)" class="w-full h-11 bg-cosmicBg border border-borderDark focus:border-goldPrimary rounded-xl px-4 text-center text-sm text-white font-mono focus:outline-none tracking-widest">
+                        </div>
+                        <button onclick="loginAdminPortal()" class="w-full h-11 bg-gradient-to-r from-goldPrimary to-amber-500 hover:from-goldLight hover:to-goldPrimary text-cosmicBg font-black text-sm rounded-xl transition-all shadow">
+                            Authenticate Admin
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Admin Portal (Initially hidden behind gate) -->
+                <div id="adminPortalMain" class="hidden space-y-6">
+                    <div class="bg-gradient-to-r from-yellow-600/10 to-transparent border border-goldPrimary/20 rounded-2xl p-4 md:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="p-3 bg-goldPrimary/15 border border-goldPrimary/30 rounded-xl text-goldPrimary shrink-0">
+                                <i data-lucide="shield-alert" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-extrabold text-white flex items-center">
+                                    Ledger Administrator Portal 
+                                    <span class="ml-2 text-[9px] bg-goldPrimary/20 text-goldLight border border-goldPrimary/30 px-2 py-0.5 rounded font-black tracking-widest uppercase">MASTER ACCESS</span>
+                                </h3>
+                                <p class="text-xs text-gray-400 mt-0.5">Manage global withdrawal requests, payout approvals, coin deductions, and rejections.</p>
+                            </div>
+                        </div>
+
+                        <button onclick="logoutAdminPortal()" class="px-3.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-xs font-bold transition-all">
+                            Exit Portal
+                        </button>
+                    </div>
+
+                    <!-- Global Withdrawal Management Table/List -->
+                    <div class="bg-cosmicSurface border border-borderDark rounded-2xl p-5 shadow-lg">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-borderDark pb-4 mb-4 gap-3">
+                            <div class="flex items-center space-x-2">
+                                <i data-lucide="list-filter" class="text-goldPrimary w-5 h-5"></i>
+                                <h4 class="text-base font-extrabold text-white">Global Withdrawal Requests</h4>
+                            </div>
+
+                            <!-- Table Filters -->
+                            <div class="flex items-center gap-1.5">
+                                <button onclick="filterAdminRequests('all')" id="adminFilterBtn-all" class="px-3 py-1 rounded bg-goldPrimary text-cosmicBg text-xs font-bold transition-all">
+                                    All
+                                </button>
+                                <button onclick="filterAdminRequests('Pending')" id="adminFilterBtn-Pending" class="px-3 py-1 rounded bg-cosmicSurfaceVariant text-gray-400 hover:text-white text-xs font-bold transition-all">
+                                    Pending
+                                </button>
+                                <button onclick="filterAdminRequests('Approved')" id="adminFilterBtn-Approved" class="px-3 py-1 rounded bg-cosmicSurfaceVariant text-gray-400 hover:text-white text-xs font-bold transition-all">
+                                    Approved
+                                </button>
+                                <button onclick="filterAdminRequests('Rejected')" id="adminFilterBtn-Rejected" class="px-3 py-1 rounded bg-cosmicSurfaceVariant text-gray-400 hover:text-white text-xs font-bold transition-all">
+                                    Rejected
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Requests Table (Desktop) / Lists (Mobile) -->
+                        <div class="overflow-x-auto min-h-[300px]" id="adminGlobalListContainer">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Info Guide & Status Banner -->
+            <div class="w-full bg-cosmicSurface border border-borderDark rounded-2xl p-4 flex gap-4 text-sm shadow-sm" id="infoBanner">
+                <i data-lucide="info" class="w-5 h-5 text-goldPrimary shrink-0 mt-0.5"></i>
+                <div>
+                    <h5 class="font-bold text-white text-sm" id="infoBannerTitle">Sandbox Simulated Mode Active</h5>
+                    <p class="text-xs text-gray-400 mt-1 leading-relaxed" id="infoBannerDesc">
+                        Running in sandbox simulation. All claim states, cooldowns, and coin ledgers are securely simulated locally in your web browser. Enable cloud Firestore in the settings menu above.
+                    </p>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Drawer for Firebase Configuration -->
+    <div id="configDrawer" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 transition-opacity duration-300 opacity-0 pointer-events-none flex justify-end">
+        <div class="w-full max-w-md bg-cosmicSurface h-full border-l border-borderDark shadow-2xl p-6 overflow-y-auto flex flex-col justify-between transform translate-x-full transition-transform duration-300">
+            <div>
+                <!-- Drawer Header -->
+                <div class="flex items-center justify-between border-b border-borderDark pb-4 mb-6">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="database" class="w-5 h-5 text-goldPrimary"></i>
+                        <h3 class="text-lg font-extrabold text-white">Database Settings</h3>
+                    </div>
+                    <button onclick="toggleConfigDrawer(false)" class="p-1 rounded-lg bg-cosmicSurfaceVariant text-gray-400 hover:text-white border border-borderDark">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <p class="text-xs text-gray-400 mb-5 leading-relaxed">
+                    By default, the app runs in local **Simulated Sandbox mode**. If you want to connect real cloud storage, paste your web app's Firebase credentials below and click Save.
+                </p>
+
+                <!-- Configuration form -->
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-300 mb-1">Firebase Connection Mode</label>
+                        <select id="firebaseModeSelect" onchange="onConnectionModeChanged()" class="w-full h-11 bg-cosmicSurfaceVariant border border-borderDark rounded-xl px-4 text-sm text-white focus:outline-none focus:border-goldPrimary">
+                            <option value="sandbox">Simulated Sandbox (No Keys Required)</option>
+                            <option value="firebase">Real Cloud Firestore & Auth</option>
+                        </select>
+                    </div>
+
+                    <div id="firebaseConfigForm" class="space-y-3 hidden">
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">API Key</label>
+                            <input type="text" id="firebase_apiKey" placeholder="AIzaSy..." class="w-full h-10 bg-cosmicSurfaceVariant border border-borderDark rounded-xl px-3 text-xs text-white focus:outline-none focus:border-goldPrimary">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Auth Domain</label>
+                            <input type="text" id="firebase_authDomain" placeholder="my-app.firebaseapp.com" class="w-full h-10 bg-cosmicSurfaceVariant border border-borderDark rounded-xl px-3 text-xs text-white focus:outline-none focus:border-goldPrimary">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Project ID</label>
+                            <input type="text" id="firebase_projectId" placeholder="my-app" class="w-full h-10 bg-cosmicSurfaceVariant border border-borderDark rounded-xl px-3 text-xs text-white focus:outline-none focus:border-goldPrimary">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Storage Bucket</label>
+                            <input type="text" id="firebase_storageBucket" placeholder="my-app.appspot.com" class="w-full h-10 bg-cosmicSurfaceVariant border border-borderDark rounded-xl px-3 text-xs text-white focus:outline-none focus:border-goldPrimary">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Messaging Sender ID</label>
+                            <input type="text" id="firebase_messagingSenderId" placeholder="1234567890" class="w-full h-10 bg-cosmicSurfaceVariant border border-borderDark rounded-xl px-3 text-xs text-white focus:outline-none focus:border-goldPrimary">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">App ID</label>
+                            <input type="text" id="firebase_appId" placeholder="1:12345:web:abcdef..." class="w-full h-10 bg-cosmicSurfaceVariant border border-borderDark rounded-xl px-3 text-xs text-white focus:outline-none focus:border-goldPrimary">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Firestore Rules Hint -->
+                <div id="firestoreHint" class="hidden mt-6 bg-blue-500/5 border border-blue-500/20 p-4 rounded-xl text-xs text-gray-400 leading-relaxed">
+                    <h5 class="font-bold text-blue-400 flex items-center mb-1">
+                        <i data-lucide="shield" class="w-4 h-4 mr-1"></i> Firestore Rule Requirement
+                    </h5>
+                    Ensure your database has both <code class="bg-gray-800 text-white px-1 py-0.5 rounded">Users</code> and <code class="bg-gray-800 text-white px-1 py-0.5 rounded">Withdrawals</code> collections configured. Example security rules:
+                    <pre class="bg-gray-800/80 text-[10px] text-gray-300 p-2 rounded-lg mt-2 overflow-x-auto">
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /Users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /Withdrawals/{reqId} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}</pre>
+                </div>
+            </div>
+
+            <!-- Drawer Save / Action Buttons -->
+            <div class="border-t border-borderDark pt-4 mt-6">
+                <button onclick="saveConnectionSettings()" class="w-full h-11 bg-gradient-to-r from-goldPrimary to-amber-500 hover:from-goldLight hover:to-goldPrimary text-cosmicBg font-black text-sm rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2">
+                    <i data-lucide="check" class="w-4 h-4 text-cosmicBg"></i>
+                    <span>Apply & Save Connection</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Ad Player Overlay Modal -->
+    <div id="adOverlayModal" class="fixed inset-0 bg-black/95 z-50 transition-opacity duration-300 opacity-0 pointer-events-none flex flex-col items-center justify-center p-4">
+        <div class="w-full max-w-lg bg-cosmicSurface border border-goldPrimary/30 rounded-3xl p-6 relative shadow-2xl flex flex-col items-center">
+            
+            <!-- Ad Header -->
+            <div class="w-full flex items-center justify-between mb-4 pb-2 border-b border-borderDark">
+                <span class="text-xs bg-goldPrimary/10 text-goldPrimary border border-goldPrimary/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">SPONSORED VIDEO</span>
+                <div class="flex items-center space-x-1.5 text-xs text-gray-400">
+                    <span id="adTimerSeconds" class="jetbrains-mono font-bold text-goldLight">15</span>s remaining
+                </div>
+            </div>
+
+            <!-- Ad Title -->
+            <h4 id="adTitleText" class="text-lg font-extrabold text-white mb-4 text-center">Ad-Colony Premium Video</h4>
+
+            <!-- Beautiful Simulated Video Display with Dynamic Graphics -->
+            <div class="w-full aspect-video rounded-2xl bg-black border border-borderDark relative overflow-hidden flex flex-col items-center justify-center">
+                
+                <!-- SVG animations or custom retro visual patterns running in simulated video -->
+                <div class="absolute inset-0 bg-gradient-to-tr from-yellow-500/10 via-amber-500/5 to-purple-500/10 animate-pulse"></div>
+                
+                <!-- Dynamic Graphic Container that bounces/rotates based on ad stream -->
+                <div class="text-center z-10 relative">
+                    <div id="adGraphicIcon" class="text-5xl mb-3 animate-bounce">📱</div>
+                    <p id="adGraphicPromoText" class="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-goldLight via-goldPrimary to-amber-400 tracking-wider">UPGRADE YOUR WEALTH</p>
+                    <p class="text-[10px] text-gray-500 mt-1 max-w-xs mx-auto">Get high interest, clean trades, and master classes today!</p>
+                </div>
+
+                <!-- Live Loader Ring -->
+                <div class="absolute bottom-4 right-4 w-7 h-7 rounded-full border-4 border-goldPrimary/20 border-t-goldPrimary animate-spin"></div>
+            </div>
+
+            <!-- Bottom Progress Line -->
+            <div class="w-full bg-cosmicBg h-2 rounded-full overflow-hidden border border-borderDark mt-6">
+                <div id="adProgressBar" class="bg-gradient-to-r from-goldPrimary to-amber-500 h-full w-0 transition-all duration-1000"></div>
+            </div>
+
+            <p class="text-[11px] text-gray-400 mt-3 text-center">
+                Please complete the advertisement video to claim your 10 gold coins. Skipping prevents payouts.
+            </p>
+
+            <!-- Complete/Close Button (Disabled initially to prevent skipping) -->
+            <button id="adCloseBtn" disabled onclick="finishAdClaim()" class="w-full h-12 bg-cosmicSurfaceVariant text-gray-500 border border-borderDark font-bold text-sm rounded-xl mt-6 cursor-not-allowed transition-all flex items-center justify-center space-x-2">
+                <i data-lucide="lock" class="w-4 h-4 text-gray-500" id="adCloseIcon"></i>
+                <span id="adCloseText">Watch Video to Unlock Reward</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast message element -->
+    <div id="toastMessage" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-cosmicSurfaceVariant border border-borderDark px-5 py-3 rounded-2xl shadow-2xl text-sm font-semibold flex items-center space-x-2.5 opacity-0 translate-y-4 pointer-events-none transition-all duration-300 z-50">
+        <span id="toastIcon" class="text-lg">🪙</span>
+        <span id="toastText" class="text-white">Sample Toast Message</span>
+    </div>
+
+    <!-- Footer Information -->
+    <footer class="border-t border-borderDark bg-cosmicSurface/30 py-4 w-full mt-12">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between text-xs text-gray-500 gap-2">
+            <p>© 2026 Daily Rewards Pro. Ledger module configured with Google AdSense and Cloud Firestore Sync.</p>
+            <div class="flex space-x-4">
+                <a href="#" class="hover:text-goldPrimary transition-colors">Privacy Policy</a>
+                <span class="text-gray-700">•</span>
+                <a href="#" class="hover:text-goldPrimary transition-colors">Terms of Service</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JS Logic -->
+    <script>
+        // Global States
+        let currentUser = null;
+        let connectionMode = 'sandbox'; // 'sandbox' or 'firebase'
+        let db = null;
+        let auth = null;
+        let timerInterval = null;
+        
+        // Tab routing state
+        let currentTab = 'daily';
+
+        // Active Ad Session states
+        let adProgressTimer = null;
+        let adSecondsLeft = 15;
+        let adTitleSelected = '';
+
+        // Admin Access state
+        let isAdminAuthenticated = false;
+        let adminFilter = 'all';
+
+        // Initialize Lucide icons on load
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+            loadConnectionSettings();
+            initApp();
+        });
+
+        // Load settings from local storage
+        function loadConnectionSettings() {
+            const savedMode = localStorage.getItem('connection_mode');
+            if (savedMode) {
+                connectionMode = savedMode;
+                document.getElementById('firebaseModeSelect').value = savedMode;
+            }
+
+            // Populate saved config if any
+            const savedConfig = localStorage.getItem('firebase_config');
+            if (savedConfig) {
+                try {
+                    const config = JSON.parse(savedConfig);
+                    document.getElementById('firebase_apiKey').value = config.apiKey || '';
+                    document.getElementById('firebase_authDomain').value = config.authDomain || '';
+                    document.getElementById('firebase_projectId').value = config.projectId || '';
+                    document.getElementById('firebase_storageBucket').value = config.storageBucket || '';
+                    document.getElementById('firebase_messagingSenderId').value = config.messagingSenderId || '';
+                    document.getElementById('firebase_appId').value = config.appId || '';
+                } catch (e) {
+                    console.error("Failed to parse saved Firebase config", e);
+                }
+            }
+
+            onConnectionModeChanged();
+        }
+
+        // Toggle drawer visibility
+        function toggleConfigDrawer(show) {
+            const drawer = document.getElementById('configDrawer');
+            const drawerContent = drawer.firstElementChild;
+            if (show) {
+                drawer.classList.remove('pointer-events-none', 'opacity-0');
+                drawerContent.classList.remove('translate-x-full');
+            } else {
+                drawer.classList.add('pointer-events-none', 'opacity-0');
+                drawerContent.classList.add('translate-x-full');
+            }
+        }
+
+        // Handle connection dropdown change
+        function onConnectionModeChanged() {
+            const select = document.getElementById('firebaseModeSelect');
+            const mode = select.value;
+            const configForm = document.getElementById('firebaseConfigForm');
+            const firestoreHint = document.getElementById('firestoreHint');
+
+            if (mode === 'firebase') {
+                configForm.classList.remove('hidden');
+                firestoreHint.classList.remove('hidden');
+            } else {
+                configForm.classList.add('hidden');
+                firestoreHint.classList.add('hidden');
+            }
+        }
+
+        // Save Connection settings & optionally initialize Firebase
+        function saveConnectionSettings() {
+            const select = document.getElementById('firebaseModeSelect');
+            const mode = select.value;
+            connectionMode = mode;
+            localStorage.setItem('connection_mode', mode);
+
+            if (mode === 'firebase') {
+                const config = {
+                    apiKey: document.getElementById('firebase_apiKey').value.trim(),
+                    authDomain: document.getElementById('firebase_authDomain').value.trim(),
+                    projectId: document.getElementById('firebase_projectId').value.trim(),
+                    storageBucket: document.getElementById('firebase_storageBucket').value.trim(),
+                    messagingSenderId: document.getElementById('firebase_messagingSenderId').value.trim(),
+                    appId: document.getElementById('firebase_appId').value.trim()
+                };
+
+                if (!config.apiKey || !config.projectId) {
+                    showToast("⚠️ Missing API Key or Project ID for Firebase", "error");
+                    return;
+                }
+
+                localStorage.setItem('firebase_config', JSON.stringify(config));
+                
+                // Reinitialize
+                try {
+                    if (firebase.apps.length > 0) {
+                        firebase.app().delete().then(() => {
+                            initFirebase(config);
+                            showToast("⚡ Firebase Connected Successfully!", "success");
+                        });
+                    } else {
+                        initFirebase(config);
+                        showToast("⚡ Firebase Connected Successfully!", "success");
+                    }
+                } catch (e) {
+                    showToast("❌ Connection error: " + e.message, "error");
+                    return;
+                }
+            } else {
+                showToast("📦 Switched to Local Simulated Sandbox", "success");
+            }
+
+            updateConnectionBadge();
+            toggleConfigDrawer(false);
+
+            if (currentUser) {
+                logout();
+            }
+        }
+
+        // Initialize real Firebase SDK
+        function initFirebase(config) {
+            try {
+                firebase.initializeApp(config);
+                db = firebase.firestore();
+                auth = firebase.auth();
+
+                auth.onAuthStateChanged((user) => {
+                    if (connectionMode === 'firebase') {
+                        if (user) {
+                            syncFirebaseUser(user);
+                        } else {
+                            currentUser = null;
+                            showScreen('login');
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error("Firebase Init Error:", e);
+                showToast("⚠️ Init Error: " + e.message, "error");
+            }
+        }
+
+        // Update UI Badge state
+        function updateConnectionBadge() {
+            const badge = document.getElementById('connectionBadge');
+            const text = document.getElementById('connectionBadgeText');
+            const bullet = badge.querySelector('span');
+
+            if (connectionMode === 'firebase') {
+                text.innerText = "Firebase Live";
+                badge.className = "flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 cursor-pointer";
+                bullet.className = "w-2 h-2 rounded-full bg-emerald-500 animate-pulse";
+            } else {
+                text.innerText = "Local Sandbox";
+                badge.className = "flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-orange-500/10 text-orange-400 border border-orange-500/20 cursor-pointer";
+                bullet.className = "w-2 h-2 rounded-full bg-orange-500 animate-pulse";
+            }
+        }
+
+        // App initial setup
+        function initApp() {
+            updateConnectionBadge();
+
+            if (connectionMode === 'sandbox') {
+                const savedUser = localStorage.getItem('sandbox_user');
+                if (savedUser) {
+                    currentUser = JSON.parse(savedUser);
+                    showScreen('dashboard');
+                    startCooldownTimer();
+                    buildStreakTracker();
+                    loadWithdrawalList();
+                } else {
+                    showScreen('login');
+                }
+            } else {
+                const savedConfig = localStorage.getItem('firebase_config');
+                if (savedConfig) {
+                    try {
+                        const config = JSON.parse(savedConfig);
+                        initFirebase(config);
+                    } catch (e) {
+                        console.error("Firebase startup failed:", e);
+                        showScreen('login');
+                    }
+                } else {
+                    showScreen('login');
+                }
+            }
+        }
+
+        // Screen Routing logic
+        function showScreen(screenId) {
+            const login = document.getElementById('loginScreen');
+            const dash = document.getElementById('dashboardScreen');
+
+            if (screenId === 'login') {
+                login.classList.remove('hidden');
+                dash.classList.add('hidden');
+                if (timerInterval) clearInterval(timerInterval);
+            } else {
+                login.classList.add('hidden');
+                dash.classList.remove('hidden');
+                updateDashboardUI();
+                switchTab('daily');
+            }
+        }
+
+        // Google Sign-In trigger (Firebase Live Mode)
+        function loginWithGoogle() {
+            if (connectionMode !== 'firebase' || !auth) {
+                showToast("⚙️ Please configure & connect Firebase in Settings first!", "info");
+                toggleConfigDrawer(true);
+                return;
+            }
+
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then((result) => {
+                    showToast("👋 Signed in with Google!", "success");
+                })
+                .catch((err) => {
+                    console.error("Google Signin Failure", err);
+                    showToast("❌ Google Sign-in Failed: " + err.message, "error");
+                });
+        }
+
+        // Sync Firebase Auth user data to Firestore
+        function syncFirebaseUser(user) {
+            const userRef = db.collection("Users").doc(user.uid);
+            
+            userRef.get().then((doc) => {
+                if (doc.exists) {
+                    currentUser = {
+                        uid: user.uid,
+                        displayName: user.displayName || 'Google Explorer',
+                        email: user.email,
+                        coins: doc.data().coins || 0,
+                        lastClaimedTimestamp: doc.data().lastClaimedTimestamp || 0
+                    };
+                } else {
+                    currentUser = {
+                        uid: user.uid,
+                        displayName: user.displayName || 'Google Explorer',
+                        email: user.email,
+                        coins: 0,
+                        lastClaimedTimestamp: 0
+                    };
+                    userRef.set(currentUser);
+                }
+                showScreen('dashboard');
+                startCooldownTimer();
+                buildStreakTracker();
+                loadWithdrawalList();
+                listenToGlobalWithdrawalsForBadge();
+            }).catch((err) => {
+                showToast("⚠️ Firestore Sync Failed: " + err.message, "error");
+                currentUser = {
+                    uid: user.uid,
+                    displayName: user.displayName,
+                    email: user.email,
+                    coins: 0,
+                    lastClaimedTimestamp: 0
+                };
+                showScreen('dashboard');
+            });
+        }
+
+        // Sandbox simulated login
+        function loginSandbox() {
+            const nameInput = document.getElementById('sandboxName').value.trim();
+            const emailInput = document.getElementById('sandboxEmail').value.trim();
+
+            currentUser = {
+                uid: 'sandbox_user_id',
+                displayName: nameInput || 'Sandbox Explorer',
+                email: emailInput || 'sandbox@example.com',
+                coins: 0,
+                lastClaimedTimestamp: 0
+            };
+
+            const savedStats = localStorage.getItem(`sandbox_stats_${currentUser.email}`);
+            if (savedStats) {
+                const stats = JSON.parse(savedStats);
+                currentUser.coins = stats.coins || 0;
+                currentUser.lastClaimedTimestamp = stats.lastClaimedTimestamp || 0;
+            }
+
+            localStorage.setItem('sandbox_user', JSON.stringify(currentUser));
+            localStorage.setItem('connection_mode', 'sandbox');
+            connectionMode = 'sandbox';
+            updateConnectionBadge();
+
+            showToast(`🎁 Logged in as ${currentUser.displayName}`, "success");
+            showScreen('dashboard');
+            startCooldownTimer();
+            buildStreakTracker();
+            loadWithdrawalList();
+            updatePendingAdminBadge();
+        }
+
+        // Log out user
+        function logout() {
+            if (connectionMode === 'firebase' && auth) {
+                auth.signOut();
+            } else {
+                localStorage.removeItem('sandbox_user');
+                currentUser = null;
+                showScreen('login');
+            }
+        }
+
+        // Refresh screen details
+        function updateDashboardUI() {
+            if (!currentUser) return;
+
+            document.getElementById('userDisplayName').innerText = currentUser.displayName;
+            document.getElementById('userEmail').innerText = currentUser.email;
+            document.getElementById('userCoinBalance').innerText = currentUser.coins;
+            document.getElementById('withdrawAvailableCoins').innerText = `${currentUser.coins} Coins`;
+
+            const names = currentUser.displayName.split(' ');
+            const initials = names.map(n => n[0]).join('').slice(0, 2).toUpperCase();
+            document.getElementById('userAvatar').innerText = initials || 'EX';
+
+            const infoBanner = document.getElementById('infoBanner');
+            const infoTitle = document.getElementById('infoBannerTitle');
+            const infoDesc = document.getElementById('infoBannerDesc');
+
+            if (connectionMode === 'firebase') {
+                infoBanner.className = "w-full bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex gap-4 text-sm shadow-sm";
+                infoTitle.innerText = "Cloud Firestore Sync Enabled";
+                infoDesc.innerText = "You are connected to a live Google Cloud database. All coin balance additions, timestamp calculations, and withdrawal processing sync directly into your custom Firebase collections in real-time.";
+            } else {
+                infoBanner.className = "w-full bg-orange-500/10 border border-orange-500/20 rounded-2xl p-4 flex gap-4 text-sm shadow-sm";
+                infoTitle.innerText = "Sandbox Simulated Mode Active";
+                infoDesc.innerText = "All stats and payout history are simulated locally in this web browser. Setup your own Firebase credentials via the Settings panel in the navbar to connect a live production cloud.";
+            }
+        }
+
+        // Switch internal navigation tabs
+        function switchTab(tabId) {
+            currentTab = tabId;
+
+            // Hide all tab contents
+            document.getElementById('tabContent-daily').classList.add('hidden');
+            document.getElementById('tabContent-ads').classList.add('hidden');
+            document.getElementById('tabContent-withdraw').classList.add('hidden');
+            document.getElementById('tabContent-admin').classList.add('hidden');
+
+            // Reset tab button styles
+            const tabs = ['daily', 'ads', 'withdraw', 'admin'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`tabBtn-${t}`);
+                if (btn) {
+                    btn.className = "flex items-center space-x-1 px-3 py-2 rounded-lg text-xs font-bold transition-all text-gray-400 hover:text-white hover:bg-cosmicSurfaceVariant";
+                }
+            });
+
+            // Show selected tab content
+            document.getElementById(`tabContent-${tabId}`).classList.remove('hidden');
+            
+            // Set active button style
+            const activeBtn = document.getElementById(`tabBtn-${tabId}`);
+            if (activeBtn) {
+                activeBtn.className = "flex items-center space-x-1 px-3 py-2 rounded-lg text-xs font-bold transition-all bg-goldPrimary text-cosmicBg";
+            }
+
+            // Specific tab entry setups
+            if (tabId === 'withdraw') {
+                loadWithdrawalList();
+            } else if (tabId === 'admin') {
+                setupAdminPanelVisibility();
+            }
+        }
+
+        // Start daily countdown ticks
+        function startCooldownTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+
+            const checkCooldown = () => {
+                if (!currentUser) return;
+
+                const now = Date.now();
+                const cycle = 24 * 60 * 60 * 1000;
+                const elapsed = now - currentUser.lastClaimedTimestamp;
+                const remaining = cycle - elapsed;
+
+                const coinFace = document.getElementById('claimCoinFace');
+                const coinEmoji = document.getElementById('claimCoinEmoji');
+                const coinBadge = document.getElementById('claimCoinBadge');
+                const claimBtn = document.getElementById('claimRewardBtn');
+                const clockContainer = document.getElementById('cooldownClockContainer');
+                const progressContainer = document.getElementById('cooldownProgressContainer');
+                const progressText = document.getElementById('cooldownProgressText');
+                const progressBar = document.getElementById('cooldownProgressBar');
+                const rewardTitle = document.getElementById('rewardTitle');
+                const rewardSubtitle = document.getElementById('rewardSubtitle');
+                const glowRipple = document.getElementById('glowRipple');
+
+                if (remaining > 0) {
+                    const totalSeconds = Math.floor(remaining / 1000);
+                    const h = Math.floor(totalSeconds / 3600);
+                    const m = Math.floor((totalSeconds % 3600) / 60);
+                    const s = totalSeconds % 60;
+
+                    const format = (val) => String(val).padStart(2, '0');
+                    document.getElementById('cooldownTimer').innerText = `${format(h)} : ${format(m)} : ${format(s)}`;
+
+                    clockContainer.classList.remove('hidden');
+                    progressContainer.classList.remove('hidden');
+                    glowRipple.classList.add('hidden');
+
+                    const percent = Math.min(100, Math.floor((elapsed / cycle) * 100));
+                    progressBar.style.width = `${percent}%`;
+                    progressText.innerText = `${percent}% Recharged`;
+
+                    coinFace.className = "w-32 h-32 rounded-full bg-gradient-to-tr from-gray-700 via-gray-600 to-gray-500 border-4 border-gray-500 shadow-inner flex flex-col items-center justify-center transition-all duration-300 relative scale-95 opacity-70 cursor-not-allowed";
+                    coinEmoji.className = "text-5xl filter grayscale opacity-40 select-none";
+                    coinBadge.innerText = "COOLDOWN";
+                    coinBadge.className = "absolute bottom-3 bg-gray-900/90 px-2.5 py-0.5 border border-gray-600 rounded-full text-[9px] font-black text-gray-400 tracking-wider";
+
+                    rewardTitle.innerText = "Reward On Cooldown";
+                    rewardSubtitle.innerText = "You have claimed today's reward bundle! Recharge progress is active. Please return when the countdown above reaches zero.";
+
+                    claimBtn.disabled = true;
+                    claimBtn.className = "w-full h-14 bg-cosmicSurfaceVariant text-gray-500 border border-borderDark font-bold text-base rounded-2xl cursor-not-allowed transition-all duration-300 flex items-center justify-center space-x-2";
+                    claimBtn.innerHTML = `<i data-lucide="lock" class="w-5 h-5"></i><span>ON COOLDOWN</span>`;
+                    lucide.createIcons();
+                } else {
+                    clockContainer.classList.add('hidden');
+                    progressContainer.classList.add('hidden');
+                    glowRipple.classList.remove('hidden');
+
+                    coinFace.className = "w-32 h-32 rounded-full bg-gradient-to-tr from-yellow-600 via-goldPrimary to-goldLight border-4 border-yellow-300 shadow-2xl flex flex-col items-center justify-center transition-all duration-300 relative hover:scale-105 active:scale-95 cursor-pointer gold-glow-button";
+                    coinEmoji.className = "text-5xl select-none drop-shadow-lg";
+                    coinBadge.innerText = "+10";
+                    coinBadge.className = "absolute bottom-3 bg-cosmicBg/80 px-2.5 py-0.5 border border-goldPrimary/30 rounded-full text-[10px] font-black text-goldPrimary tracking-widest";
+
+                    rewardTitle.innerText = "Claim Today's Reward!";
+                    rewardSubtitle.innerText = "Your daily +10 gold coins are fully recharged and ready. Tap the glowing coin or click the action button below to claim them immediately!";
+
+                    claimBtn.disabled = false;
+                    claimBtn.className = "w-full h-14 bg-gradient-to-r from-goldPrimary to-amber-500 text-cosmicBg font-black text-base rounded-2xl hover:brightness-110 active:scale-[0.98] transition-all duration-300 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl cursor-pointer select-none";
+                    claimBtn.innerHTML = `<i data-lucide="star" class="w-5 h-5 fill-cosmicBg"></i><span>CLAIM 10 COINS</span>`;
+                    lucide.createIcons();
+                }
+            };
+
+            checkCooldown();
+            timerInterval = setInterval(checkCooldown, 1000);
+        }
+
+        // Clicking the chest coin launches the claim
+        function triggerClaimAttempt() {
+            const claimBtn = document.getElementById('claimRewardBtn');
+            if (!claimBtn.disabled) {
+                claimDailyReward();
+            } else {
+                showToast("⏳ Cooldown recharge is still in progress!", "info");
+            }
+        }
+
+        // Perform Rewards claim transaction
+        function claimDailyReward() {
+            if (!currentUser) return;
+
+            const elapsed = Date.now() - currentUser.lastClaimedTimestamp;
+            const cycle = 24 * 60 * 60 * 1000;
+            if (elapsed < cycle) {
+                showToast("⏳ Reward not ready yet!", "info");
+                return;
+            }
+
+            const previousCoins = currentUser.coins;
+            currentUser.coins += 10;
+            currentUser.lastClaimedTimestamp = Date.now();
+
+            triggerConfettiSplatter();
+
+            if (connectionMode === 'firebase' && db) {
+                const userRef = db.collection("Users").doc(currentUser.uid);
+                userRef.update({
+                    coins: currentUser.coins,
+                    lastClaimedTimestamp: currentUser.lastClaimedTimestamp
+                }).then(() => {
+                    showToast("✨ +10 Gold Coins Saved to Cloud Firestore!", "success");
+                    updateDashboardUI();
+                    buildStreakTracker();
+                }).catch((err) => {
+                    showToast("❌ Cloud save failed: " + err.message, "error");
+                    currentUser.coins = previousCoins;
+                    updateDashboardUI();
+                });
+            } else {
+                localStorage.setItem(`sandbox_stats_${currentUser.email}`, JSON.stringify({
+                    coins: currentUser.coins,
+                    lastClaimedTimestamp: currentUser.lastClaimedTimestamp
+                }));
+                localStorage.setItem('sandbox_user', JSON.stringify(currentUser));
+
+                showToast("✨ +10 Simulated Coins added to Sandbox Ledger!", "success");
+                updateDashboardUI();
+                buildStreakTracker();
+            }
+        }
+
+        // Build beautiful visual weekly grid
+        function buildStreakTracker() {
+            const container = document.getElementById('streakDaysContainer');
+            const template = document.getElementById('streakDayTemplate');
+            container.innerHTML = '';
+
+            const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+            const currentDayOfWeek = new Date().getDay();
+
+            for (let i = 0; i < 7; i++) {
+                const clone = template.content.cloneNode(true);
+                const circle = clone.querySelector('.day-circle');
+                const label = clone.querySelector('.day-label');
+
+                label.innerText = days[i];
+
+                if (i === currentDayOfWeek) {
+                    label.className += " text-goldPrimary font-bold";
+                    const now = Date.now();
+                    const elapsed = now - currentUser.lastClaimedTimestamp;
+                    const cycle = 24 * 60 * 60 * 1000;
+
+                    if (elapsed < cycle) {
+                        circle.innerText = "✓";
+                        circle.className += " bg-emeraldSuccess/20 border-emeraldSuccess text-emeraldSuccess scale-105";
+                    } else {
+                        circle.innerText = "+10";
+                        circle.className += " bg-goldPrimary/10 border-goldPrimary/40 text-goldPrimary animate-pulse";
+                    }
+                } else if (i < currentDayOfWeek) {
+                    circle.innerText = "✓";
+                    circle.className += " bg-emeraldSuccess/10 border-emeraldSuccess/40 text-emeraldSuccess/70";
+                } else {
+                    circle.innerText = "+10";
+                    circle.className += " bg-cosmicSurfaceVariant border-borderDark text-gray-500";
+                }
+
+                container.appendChild(clone);
+            }
+        }
+
+        // Gorgeous Golden Confetti Celebration
+        function triggerConfettiSplatter() {
+            const duration = 1.5 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 25, spread: 360, ticks: 50, zIndex: 100 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                const particleCount = 45 * (timeLeft / duration);
+                const goldenColors = ['#FFD700', '#FFA500', '#FFFFE0', '#FFF8DC', '#B8860B'];
+                
+                confetti(Object.assign({}, defaults, { 
+                    particleCount, 
+                    origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+                    colors: goldenColors
+                }));
+                confetti(Object.assign({}, defaults, { 
+                    particleCount, 
+                    origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+                    colors: goldenColors
+                }));
+            }, 250);
+        }
+
+        // ================= JS ADS MODULE =================
+        function startAdSession(adProviderName) {
+            if (!currentUser) return;
+
+            adTitleSelected = adProviderName;
+            adSecondsLeft = 15;
+
+            // Setup elements in ad modal
+            document.getElementById('adTitleText').innerText = adProviderName;
+            document.getElementById('adTimerSeconds').innerText = adSecondsLeft;
+            
+            const progressBar = document.getElementById('adProgressBar');
+            progressBar.style.width = '0%';
+
+            // Set dynamic ad graphics/text based on selected provider
+            const graphicIcon = document.getElementById('adGraphicIcon');
+            const graphicPromo = document.getElementById('adGraphicPromoText');
+            
+            if (adProviderName.includes('Colony')) {
+                graphicIcon.innerText = "🎮";
+                graphicPromo.innerText = "SUPER CLASH RPG";
+            } else if (adProviderName.includes('Unity')) {
+                graphicIcon.innerText = "📈";
+                graphicPromo.innerText = "STOCK & OPTIONS SIM";
+            } else if (adProviderName.includes('AppLovin')) {
+                graphicIcon.innerText = "🛍️";
+                graphicPromo.innerText = "MEGA DEALS MART";
+            } else {
+                graphicIcon.innerText = "⚡";
+                graphicPromo.innerText = "SPEED PRO VPN";
+            }
+
+            // Disable close/claim button initially
+            const closeBtn = document.getElementById('adCloseBtn');
+            closeBtn.disabled = true;
+            closeBtn.className = "w-full h-12 bg-cosmicSurfaceVariant text-gray-500 border border-borderDark font-bold text-sm rounded-xl mt-6 cursor-not-allowed transition-all flex items-center justify-center space-x-2";
+            closeBtn.innerHTML = `<i data-lucide="lock" class="w-4 h-4 text-gray-500" id="adCloseIcon"></i><span id="adCloseText">Watch Video to Unlock Reward (15s)</span>`;
+            lucide.createIcons();
+
+            // Open overlay modal
+            const overlay = document.getElementById('adOverlayModal');
+            overlay.classList.remove('pointer-events-none', 'opacity-0');
+            overlay.classList.add('opacity-100');
+
+            // Begin ad countdown ticker
+            if (adProgressTimer) clearInterval(adProgressTimer);
+            
+            adProgressTimer = setInterval(() => {
+                adSecondsLeft--;
+                document.getElementById('adTimerSeconds').innerText = adSecondsLeft;
+                
+                // Progress calculation
+                const percent = Math.floor(((15 - adSecondsLeft) / 15) * 100);
+                progressBar.style.width = `${percent}%`;
+
+                // Update unlock label
+                const closeTxt = document.getElementById('adCloseText');
+                closeTxt.innerText = `Watch Video to Unlock Reward (${adSecondsLeft}s)`;
+
+                if (adSecondsLeft <= 0) {
+                    clearInterval(adProgressTimer);
+                    unlockAdClaim();
+                }
+            }, 1000);
+        }
+
+        // Unlock action button after completed progress timer
+        function unlockAdClaim() {
+            const closeBtn = document.getElementById('adCloseBtn');
+            closeBtn.disabled = false;
+            closeBtn.className = "w-full h-12 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-cosmicBg font-black text-sm rounded-xl mt-6 transition-all shadow-md cursor-pointer flex items-center justify-center space-x-2";
+            closeBtn.innerHTML = `<i data-lucide="sparkles" class="w-4 h-4 text-cosmicBg" id="adCloseIcon"></i><span id="adCloseText">Claim +10 Gold Coins!</span>`;
+            lucide.createIcons();
+            
+            showToast("🎁 Reward Unlocked! You can claim your coins now.", "info");
+        }
+
+        // Close ad overlay and commit rewards
+        function finishAdClaim() {
+            const overlay = document.getElementById('adOverlayModal');
+            overlay.classList.add('pointer-events-none', 'opacity-0');
+            overlay.classList.remove('opacity-100');
+
+            if (adProgressTimer) clearInterval(adProgressTimer);
+
+            // Double check to prevent exploits
+            if (adSecondsLeft > 0) {
+                showToast("⚠️ Ad was cancelled early. No rewards assigned.", "error");
+                return;
+            }
+
+            const previousCoins = currentUser.coins;
+            currentUser.coins += 10;
+
+            triggerConfettiSplatter();
+
+            if (connectionMode === 'firebase' && db) {
+                const userRef = db.collection("Users").doc(currentUser.uid);
+                userRef.update({
+                    coins: currentUser.coins
+                }).then(() => {
+                    showToast(`✨ Ad complete! +10 Coins added to cloud balance.`, "success");
+                    updateDashboardUI();
+                }).catch((err) => {
+                    showToast("❌ Cloud save failed: " + err.message, "error");
+                    currentUser.coins = previousCoins;
+                    updateDashboardUI();
+                });
+            } else {
+                localStorage.setItem(`sandbox_stats_${currentUser.email}`, JSON.stringify({
+                    coins: currentUser.coins,
+                    lastClaimedTimestamp: currentUser.lastClaimedTimestamp
+                }));
+                localStorage.setItem('sandbox_user', JSON.stringify(currentUser));
+
+                showToast(`✨ Ad complete! +10 Coins added to sandbox ledger.`, "success");
+                updateDashboardUI();
+            }
+        }
+
+        // ================= WITHDRAWAL SYSTEM MODULE =================
+        function loadWithdrawalList() {
+            const container = document.getElementById('payoutHistoryContainer');
+            container.innerHTML = '';
+
+            if (connectionMode === 'firebase' && db) {
+                db.collection("Withdrawals")
+                    .where("uid", "==", currentUser.uid)
+                    .orderBy("timestamp", "desc")
+                    .get()
+                    .then((snapshot) => {
+                        document.getElementById('withdrawCountText').innerText = `${snapshot.size} Requests`;
+
+                        if (snapshot.empty) {
+                            renderWithdrawalEmptyState();
+                            return;
+                        }
+
+                        snapshot.forEach((doc) => {
+                            const data = doc.data();
+                            const item = createWithdrawalRowElement(data);
+                            container.appendChild(item);
+                        });
+                        lucide.createIcons();
+                    })
+                    .catch((err) => {
+                        console.error("Firestore loading withdrawals failed", err);
+                        renderWithdrawalEmptyState();
+                    });
+            } else {
+                const globalWithdrawals = JSON.parse(localStorage.getItem('sandbox_global_withdrawals') || '[]');
+                const userWithdrawals = globalWithdrawals.filter(w => w.uid === currentUser.uid);
+                
+                userWithdrawals.sort((a, b) => b.timestamp - a.timestamp);
+                
+                document.getElementById('withdrawCountText').innerText = `${userWithdrawals.length} Requests`;
+
+                if (userWithdrawals.length === 0) {
+                    renderWithdrawalEmptyState();
+                    return;
+                }
+
+                userWithdrawals.forEach((data) => {
+                    const item = createWithdrawalRowElement(data);
+                    container.appendChild(item);
+                });
+                lucide.createIcons();
+            }
+        }
+
+        function renderWithdrawalEmptyState() {
+            const container = document.getElementById('payoutHistoryContainer');
+            container.innerHTML = `
+                <div class="h-full flex flex-col items-center justify-center text-center py-12 text-gray-500">
+                    <i data-lucide="wallet" class="w-12 h-12 text-gray-600 mb-2"></i>
+                    <p class="text-sm font-semibold">No withdrawals requested yet</p>
+                    <p class="text-xs text-gray-600 max-w-xs mt-1">Gain at least 1000 coins and submit your payout form to track processing status.</p>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function createWithdrawalRowElement(data) {
+            const date = new Date(data.timestamp).toLocaleDateString(undefined, {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            let statusBadgeClass = 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+            if (data.status === 'Approved') {
+                statusBadgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+            } else if (data.status === 'Rejected') {
+                statusBadgeClass = 'bg-red-500/10 text-red-400 border-red-500/20';
+            }
+
+            const card = document.createElement('div');
+            card.className = "p-4 bg-cosmicBg/80 border border-borderDark rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-inner";
+            card.innerHTML = `
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs text-gray-500 font-bold">${date}</span>
+                        <span class="text-[9px] font-black tracking-widest px-1.5 py-0.5 rounded border uppercase ${statusBadgeClass}">${data.status}</span>
+                    </div>
+                    <p class="text-sm font-extrabold text-white mt-1">₹${(data.amount / 100).toFixed(2)} payout valuation</p>
+                    <p class="text-xs text-gray-400 font-mono mt-0.5 flex items-center">
+                        <i data-lucide="at-sign" class="w-3 h-3 mr-1 text-gray-500"></i> ${data.upiId}
+                    </p>
+                </div>
+                <div class="text-right shrink-0">
+                    <span class="text-sm font-bold text-goldPrimary flex items-center"><span class="mr-1">🪙</span>${data.amount} Coins</span>
+                    <p class="text-[9px] text-gray-500 mt-1">Req ID: #${data.id.substring(0, 8)}</p>
+                </div>
+            `;
+            return card;
+        }
+
+        // Form submit withdrawal transaction request
+        function submitWithdrawalRequest() {
+            if (!currentUser) return;
+
+            const upiId = document.getElementById('payoutUpiId').value.trim();
+            const amountInput = document.getElementById('payoutAmount');
+            const amount = parseInt(amountInput.value);
+
+            // Valuations
+            if (!upiId) {
+                showToast("⚠️ Please enter a valid UPI Address", "error");
+                return;
+            }
+            if (isNaN(amount) || amount < 1000) {
+                showToast("⚠️ Minimum payout withdrawal amount is 1000 Coins", "error");
+                return;
+            }
+            if (amount > currentUser.coins) {
+                showToast("❌ Insufficient Coin Balance in your ledger!", "error");
+                return;
+            }
+
+            const requestId = "REQ_" + Math.random().toString(36).substring(2, 11).toUpperCase();
+            const requestPayload = {
+                id: requestId,
+                uid: currentUser.uid,
+                displayName: currentUser.displayName,
+                email: currentUser.email,
+                upiId: upiId,
+                amount: amount,
+                status: 'Pending',
+                timestamp: Date.now()
+            };
+
+            if (connectionMode === 'firebase' && db) {
+                db.collection("Withdrawals").doc(requestId).set(requestPayload)
+                    .then(() => {
+                        showToast("💸 Withdrawal Request Submitted! Awaiting Admin Approval.", "success");
+                        amountInput.value = '';
+                        loadWithdrawalList();
+                    })
+                    .catch((err) => {
+                        showToast("❌ Submission Failed: " + err.message, "error");
+                    });
+            } else {
+                // Save simulated sandbox request
+                const globalWithdrawals = JSON.parse(localStorage.getItem('sandbox_global_withdrawals') || '[]');
+                globalWithdrawals.push(requestPayload);
+                localStorage.setItem('sandbox_global_withdrawals', JSON.stringify(globalWithdrawals));
+
+                showToast("💸 Simulated Payout Request Submitted! Go to Admin Panel to Approve.", "success");
+                amountInput.value = '';
+                loadWithdrawalList();
+                updatePendingAdminBadge();
+            }
+        }
+
+        // ================= ADMIN PORTAL MODULE =================
+        function setupAdminPanelVisibility() {
+            const gate = document.getElementById('adminAuthGate');
+            const main = document.getElementById('adminPortalMain');
+
+            if (isAdminAuthenticated) {
+                gate.classList.add('hidden');
+                main.classList.remove('hidden');
+                loadAdminGlobalWithdrawals();
+            } else {
+                gate.classList.remove('hidden');
+                main.classList.add('hidden');
+            }
+        }
+
+        // Login Admin
+        function loginAdminPortal() {
+            const code = document.getElementById('adminPasscode').value.trim();
+            
+            if (code === 'ADMIN777' || code === '123456') {
+                isAdminAuthenticated = true;
+                showToast("🛡️ Admin Authenticated! Welcome to management console.", "success");
+                setupAdminPanelVisibility();
+            } else {
+                showToast("❌ Invalid Passcode. Access Denied.", "error");
+            }
+        }
+
+        function logoutAdminPortal() {
+            isAdminAuthenticated = false;
+            document.getElementById('adminPasscode').value = '';
+            setupAdminPanelVisibility();
+            showToast("🔒 Admin Logged Out", "info");
+        }
+
+        function filterAdminRequests(status) {
+            adminFilter = status;
+            
+            const filters = ['all', 'Pending', 'Approved', 'Rejected'];
+            filters.forEach(f => {
+                const btn = document.getElementById(`adminFilterBtn-${f}`);
+                if (btn) {
+                    if (f === status) {
+                        btn.className = "px-3 py-1 rounded bg-goldPrimary text-cosmicBg text-xs font-bold transition-all";
+                    } else {
+                        btn.className = "px-3 py-1 rounded bg-cosmicSurfaceVariant text-gray-400 hover:text-white text-xs font-bold transition-all";
+                    }
+                }
+            });
+
+            loadAdminGlobalWithdrawals();
+        }
+
+        // Load all system requests for admin control
+        function loadAdminGlobalWithdrawals() {
+            const tableContainer = document.getElementById('adminGlobalListContainer');
+            tableContainer.innerHTML = '';
+
+            if (connectionMode === 'firebase' && db) {
+                let query = db.collection("Withdrawals");
+                if (adminFilter !== 'all') {
+                    query = query.where("status", "==", adminFilter);
+                }
+
+                query.orderBy("timestamp", "desc").get()
+                    .then((snapshot) => {
+                        if (snapshot.empty) {
+                            renderAdminEmptyState();
+                            return;
+                        }
+
+                        renderAdminTable(snapshot.docs.map(doc => doc.data()));
+                    })
+                    .catch((err) => {
+                        console.error("Firestore Admin query failed", err);
+                        renderAdminEmptyState();
+                    });
+            } else {
+                // Sandbox requests
+                const globalWithdrawals = JSON.parse(localStorage.getItem('sandbox_global_withdrawals') || '[]');
+                globalWithdrawals.sort((a, b) => b.timestamp - a.timestamp);
+
+                let filtered = globalWithdrawals;
+                if (adminFilter !== 'all') {
+                    filtered = globalWithdrawals.filter(w => w.status === adminFilter);
+                }
+
+                if (filtered.length === 0) {
+                    renderAdminEmptyState();
+                    return;
+                }
+
+                renderAdminTable(filtered);
+            }
+        }
+
+        function renderAdminEmptyState() {
+            const tableContainer = document.getElementById('adminGlobalListContainer');
+            tableContainer.innerHTML = `
+                <div class="py-12 text-center text-gray-500 flex flex-col items-center justify-center">
+                    <i data-lucide="shield" class="w-12 h-12 text-gray-600 mb-2 animate-pulse"></i>
+                    <p class="text-sm font-semibold">No requests found matching criteria</p>
+                    <p class="text-xs text-gray-600 mt-1">All user transactions will display here for administrator authorization.</p>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function renderAdminTable(requestsList) {
+            const tableContainer = document.getElementById('adminGlobalListContainer');
+            
+            // Build Table Layout
+            const table = document.createElement('table');
+            table.className = "min-w-full divide-y divide-borderDark text-left text-sm whitespace-nowrap";
+            
+            table.innerHTML = `
+                <thead>
+                    <tr class="text-gray-400 text-xs font-bold uppercase tracking-wider">
+                        <th class="py-3 px-4">User Details</th>
+                        <th class="py-3 px-4">UPI Address</th>
+                        <th class="py-3 px-4">Coins Requested</th>
+                        <th class="py-3 px-4">Status</th>
+                        <th class="py-3 px-4">Date</th>
+                        <th class="py-3 px-4 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-borderDark/40">
+                </tbody>
+            `;
+
+            const tbody = table.querySelector('tbody');
+
+            requestsList.forEach((data) => {
+                const date = new Date(data.timestamp).toLocaleDateString(undefined, {
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                let statusBadgeClass = 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
+                if (data.status === 'Approved') {
+                    statusBadgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+                } else if (data.status === 'Rejected') {
+                    statusBadgeClass = 'bg-red-500/10 text-red-400 border-red-500/20';
+                }
+
+                let actionsHtml = `<span class="text-xs text-gray-500 italic">No action required</span>`;
+                if (data.status === 'Pending') {
+                    actionsHtml = `
+                        <div class="flex items-center justify-center space-x-1.5">
+                            <button onclick="processPayoutAction('${data.id}', 'Approved')" class="px-3 py-1.5 bg-emeraldSuccess/10 hover:bg-emeraldSuccess/25 text-emeraldSuccess border border-emeraldSuccess/30 text-xs font-bold rounded-lg transition-all flex items-center">
+                                <i data-lucide="check" class="w-3.5 h-3.5 mr-1"></i> Approve
+                            </button>
+                            <button onclick="processPayoutAction('${data.id}', 'Rejected')" class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/25 text-red-400 border border-red-500/30 text-xs font-bold rounded-lg transition-all flex items-center">
+                                <i data-lucide="x" class="w-3.5 h-3.5 mr-1"></i> Reject
+                            </button>
+                        </div>
+                    `;
+                }
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-cosmicSurfaceVariant/20 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3.5 px-4">
+                        <div class="font-extrabold text-white">${data.displayName}</div>
+                        <div class="text-xs text-gray-400">${data.email}</div>
+                    </td>
+                    <td class="py-3.5 px-4 font-mono text-xs text-gray-300">
+                        ${data.upiId}
+                    </td>
+                    <td class="py-3.5 px-4">
+                        <span class="font-black text-goldPrimary flex items-center"><span class="mr-1">🪙</span>${data.amount}</span>
+                        <span class="text-[10px] text-gray-500">Value: ₹${(data.amount / 100).toFixed(2)}</span>
+                    </td>
+                    <td class="py-3.5 px-4">
+                        <span class="text-[9px] font-black px-2 py-0.5 rounded border uppercase ${statusBadgeClass}">${data.status}</span>
+                    </td>
+                    <td class="py-3.5 px-4 text-xs text-gray-400">
+                        ${date}
+                    </td>
+                    <td class="py-3.5 px-4 text-center">
+                        ${actionsHtml}
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            tableContainer.appendChild(table);
+            lucide.createIcons();
+        }
+
+        // Process Withdrawal request (Deduct coins *only* upon approval)
+        function processPayoutAction(requestId, targetStatus) {
+            showToast(`⚙️ Processing request to ${targetStatus}...`, "info");
+
+            if (connectionMode === 'firebase' && db) {
+                const reqRef = db.collection("Withdrawals").doc(requestId);
+                
+                reqRef.get().then((docSnapshot) => {
+                    if (!docSnapshot.exists) {
+                        showToast("⚠️ Payout request not found in database", "error");
+                        return;
+                    }
+
+                    const reqData = docSnapshot.data();
+
+                    if (targetStatus === 'Approved') {
+                        // Deduct Coins only after approval
+                        const userRef = db.collection("Users").doc(reqData.uid);
+                        
+                        db.runTransaction((transaction) => {
+                            return transaction.get(userRef).then((userDoc) => {
+                                if (!userDoc.exists) {
+                                    throw new Error("Target User does not exist");
+                                }
+                                const currentCoins = userDoc.data().coins || 0;
+                                if (currentCoins < reqData.amount) {
+                                    throw new Error("User has insufficient coin balance to process");
+                                }
+
+                                // Update transaction values
+                                transaction.update(userRef, { coins: currentCoins - reqData.amount });
+                                transaction.update(reqRef, { status: 'Approved' });
+                            });
+                        }).then(() => {
+                            showToast("✅ Withdrawal Approved & Coins deducted!", "success");
+                            
+                            // Re-sync local state if the admin matches the logged-in user
+                            if (currentUser && currentUser.uid === reqData.uid) {
+                                currentUser.coins -= reqData.amount;
+                                updateDashboardUI();
+                            }
+
+                            loadAdminGlobalWithdrawals();
+                        }).catch((err) => {
+                            showToast("❌ Approval transaction failed: " + err.message, "error");
+                        });
+                    } else {
+                        // Just Reject - no coin deduction!
+                        reqRef.update({ status: 'Rejected' })
+                            .then(() => {
+                                showToast("❌ Payout request rejected. No coins deducted.", "success");
+                                loadAdminGlobalWithdrawals();
+                            })
+                            .catch((err) => {
+                                showToast("⚠️ Rejection failed: " + err.message, "error");
+                            });
+                    }
+                });
+            } else {
+                // Local sandbox data simulation
+                const globalWithdrawals = JSON.parse(localStorage.getItem('sandbox_global_withdrawals') || '[]');
+                const idx = globalWithdrawals.findIndex(w => w.id === requestId);
+
+                if (idx === -1) {
+                    showToast("⚠️ Payout request not found", "error");
+                    return;
+                }
+
+                const reqData = globalWithdrawals[idx];
+
+                if (targetStatus === 'Approved') {
+                    // Check balance for target sandbox user
+                    const targetEmail = reqData.email;
+                    const savedStats = JSON.parse(localStorage.getItem(`sandbox_stats_${targetEmail}`) || '{}');
+                    const currentCoins = savedStats.coins || 0;
+
+                    if (currentCoins < reqData.amount) {
+                        showToast("❌ User has insufficient coin balance!", "error");
+                        return;
+                    }
+
+                    // Deduct
+                    savedStats.coins = currentCoins - reqData.amount;
+                    localStorage.setItem(`sandbox_stats_${targetEmail}`, JSON.stringify(savedStats));
+
+                    // Update logged-in cache if the current user is target
+                    if (currentUser && currentUser.email === targetEmail) {
+                        currentUser.coins = savedStats.coins;
+                        localStorage.setItem('sandbox_user', JSON.stringify(currentUser));
+                        updateDashboardUI();
+                    }
+
+                    // Complete request
+                    globalWithdrawals[idx].status = 'Approved';
+                    localStorage.setItem('sandbox_global_withdrawals', JSON.stringify(globalWithdrawals));
+                    showToast("✅ Withdrawal Approved! Sandbox Balance updated.", "success");
+                } else {
+                    // Rejected
+                    globalWithdrawals[idx].status = 'Rejected';
+                    localStorage.setItem('sandbox_global_withdrawals', JSON.stringify(globalWithdrawals));
+                    showToast("❌ Simulated payout request rejected. No coins deducted.", "success");
+                }
+
+                loadAdminGlobalWithdrawals();
+                updatePendingAdminBadge();
+            }
+        }
+
+        // Live check for badges (Admin)
+        function updatePendingAdminBadge() {
+            const badge = document.getElementById('pendingAdminBadge');
+            if (!badge) return;
+
+            const globalWithdrawals = JSON.parse(localStorage.getItem('sandbox_global_withdrawals') || '[]');
+            const pending = globalWithdrawals.filter(w => w.status === 'Pending');
+
+            if (pending.length > 0) {
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function listenToGlobalWithdrawalsForBadge() {
+            if (connectionMode === 'firebase' && db) {
+                db.collection("Withdrawals").where("status", "==", "Pending")
+                    .onSnapshot((snapshot) => {
+                        const badge = document.getElementById('pendingAdminBadge');
+                        if (badge) {
+                            if (snapshot.size > 0) {
+                                badge.classList.remove('hidden');
+                            } else {
+                                badge.classList.add('hidden');
+                            }
+                        }
+                    });
+            }
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toastMessage');
+            const text = document.getElementById('toastText');
+            const icon = document.getElementById('toastIcon');
+
+            text.innerText = message;
+
+            if (type === 'success') {
+                icon.innerText = "🏆";
+                toast.className = "fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-emeraldSuccess/95 text-cosmicBg px-6 py-3.5 rounded-2xl shadow-2xl text-sm font-bold flex items-center space-x-2.5 transition-all duration-300 z-50";
+                text.className = "text-cosmicBg";
+            } else if (type === 'error') {
+                icon.innerText = "⚠️";
+                toast.className = "fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-5 py-3 rounded-2xl shadow-2xl text-sm font-bold flex items-center space-x-2.5 transition-all duration-300 z-50";
+                text.className = "text-white";
+            } else {
+                icon.innerText = "🪙";
+                toast.className = "fixed bottom-6 left-1/2 transform -translate-x-1/2 bg-cosmicSurfaceVariant border border-borderDark px-5 py-3 rounded-2xl shadow-2xl text-sm font-semibold flex items-center space-x-2.5 transition-all duration-300 z-50";
+                text.className = "text-white";
+            }
+
+            toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+                toast.classList.remove('opacity-100', 'translate-y-0');
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
