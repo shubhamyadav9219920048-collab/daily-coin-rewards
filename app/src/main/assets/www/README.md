@@ -4,7 +4,9 @@ This is the complete, self-contained web version of your Daily Rewards & Web Led
 
 ## Files Included
 
-- `index.html`: The main web application containing the HTML structure, Tailwind CSS styles, JavaScript functionality, and Firebase integration.
+- `index.html`: The main web application HTML structure containing layout nodes, dynamic Tailwind definitions, and script linkages.
+- `style.css`: Custom CSS styling for the smooth gold ambient glows, float animations, custom scrollbars, and aesthetic layout details.
+- `script.js`: All interactive client-side logic including Sandbox mode simulation, custom ad-watching reward schedules, responsive administration views, and modular Cloud Firestore/Auth synchronization.
 
 ## How to Run Locally
 
@@ -19,12 +21,12 @@ This is the complete, self-contained web version of your Daily Rewards & Web Led
 
 ## How to Configure Your Firebase
 
-Inside `index.html`, there is a Firebase configuration section. If you want to use your own Firebase project:
+Inside `script.js`, there is a Firebase configuration section. If you want to use your own Firebase project:
 1. Go to your [Firebase Console](https://console.firebase.google.com/).
 2. Create a new project (or use an existing one).
 3. Add a Web App to your Firebase project.
 4. Copy the `firebaseConfig` object provided by Firebase.
-5. In `index.html`, find the script block with `firebaseConfig` and replace it with your own credentials:
+5. In `script.js` (near the top), find the script block with `firebaseConfig` and replace it with your own credentials:
    ```javascript
    const firebaseConfig = {
        apiKey: "YOUR_API_KEY",
