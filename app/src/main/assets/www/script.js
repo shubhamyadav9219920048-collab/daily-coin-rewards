@@ -27,6 +27,7 @@
         let adProgressTimer = null;
         let adSecondsLeft = 15;
         let adTitleSelected = '';
+        let adSessionStartTime = 0;
 
         // Admin Access state
         let isAdminAuthenticated = false;
@@ -190,6 +191,21 @@
         function initApp() {
             updateConnectionBadge();
 
+            // Auto-detect referral code in URL query parameters
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const refParam = urlParams.get('ref');
+                if (refParam) {
+                    const cleanRef = refParam.trim().toUpperCase();
+                    localStorage.setItem('pending_referral_code', cleanRef);
+                    setTimeout(() => {
+                        showToast(`🎫 Referral Code Detected: ${cleanRef}! Claim your +50 Coins bonus in the Refer & Earn tab after logging in.`, "info");
+                    }, 1200);
+                }
+            } catch (e) {
+                console.error("Failed to parse URL referral parameter", e);
+            }
+
             if (connectionMode === 'sandbox') {
                 const savedUser = localStorage.getItem('sandbox_user');
                 if (savedUser) {
@@ -258,29 +274,124 @@
             const userRef = db.collection("Users").doc(user.uid);
             
             userRef.get().then((doc) => {
+                const defaultRefCode = user.uid.substring(0, 6).toUpperCase();
+                
+                function proceedToDashboard() {
+                    showScreen('dashboard');
+                    startCooldownTimer();
+                    buildStreakTracker();
+                    loadWithdrawalList();
+                    listenToGlobalWithdrawalsForBadge();
+                }
+
                 if (doc.exists) {
                     currentUser = {
                         uid: user.uid,
                         displayName: user.displayName || 'Google Explorer',
                         email: user.email,
                         coins: doc.data().coins || 0,
-                        lastClaimedTimestamp: doc.data().lastClaimedTimestamp || 0
+                        lastClaimedTimestamp: doc.data().lastClaimedTimestamp || 0,
+                        adsWatchedTodayCount: doc.data().adsWatchedTodayCount || 0,
+                        lastAdWatchDate: doc.data().lastAdWatchDate || '',
+                        referralCode: doc.data().referralCode || defaultRefCode,
+                        referredBy: doc.data().referredBy || '',
+                        referralsCount: doc.data().referralsCount || 0,
+                        referralsEarned: doc.data().referralsEarned || 0,
+                        createdAt: doc.data().createdAt || Date.now()
                     };
+                    if (!doc.data().referralCode || !doc.data().createdAt) {
+                        userRef.update({
+                            referralCode: currentUser.referralCode,
+                            createdAt: currentUser.createdAt
+                        });
+                    }
+                    proceedToDashboard();
                 } else {
-                    currentUser = {
-                        uid: user.uid,
-                        displayName: user.displayName || 'Google Explorer',
-                        email: user.email,
-                        coins: 0,
-                        lastClaimedTimestamp: 0
-                    };
-                    userRef.set(currentUser);
+                    // New user signup!
+                    // Check if they entered a referral code during signup
+                    const loginRefField = document.getElementById('loginReferralCode');
+                    let signupCode = (loginRefField ? loginRefField.value.trim().toUpperCase() : '') || localStorage.getItem('pending_referral_code') || '';
+                    
+                    function createDefaultUser() {
+                        currentUser = {
+                            uid: user.uid,
+                            displayName: user.displayName || 'Google Explorer',
+                            email: user.email,
+                            coins: 0,
+                            lastClaimedTimestamp: 0,
+                            adsWatchedTodayCount: 0,
+                            lastAdWatchDate: '',
+                            referralCode: defaultRefCode,
+                            referredBy: '',
+                            referralsCount: 0,
+                            referralsEarned: 0,
+                            createdAt: Date.now()
+                        };
+                        userRef.set(currentUser).then(() => {
+                            proceedToDashboard();
+                        });
+                    }
+
+                    if (signupCode && signupCode !== defaultRefCode) {
+                        db.collection("Users").where("referralCode", "==", signupCode).get()
+                            .then((snapshot) => {
+                                if (!snapshot.empty) {
+                                    const referrerDoc = snapshot.docs[0];
+                                    const referrerUid = referrerDoc.id;
+                                    
+                                    if (referrerUid !== user.uid) {
+                                        // Run a batch transaction for referral credits
+                                        const batch = db.batch();
+                                        
+                                        // Create the new user with +50 coins
+                                        currentUser = {
+                                            uid: user.uid,
+                                            displayName: user.displayName || 'Google Explorer',
+                                            email: user.email,
+                                            coins: 50,
+                                            lastClaimedTimestamp: 0,
+                                            adsWatchedTodayCount: 0,
+                                            lastAdWatchDate: '',
+                                            referralCode: defaultRefCode,
+                                            referredBy: signupCode,
+                                            referralsCount: 0,
+                                            referralsEarned: 0,
+                                            createdAt: Date.now()
+                                        };
+                                        batch.set(userRef, currentUser);
+                                        
+                                        // Update the referrer document
+                                        const referrerRef = db.collection("Users").doc(referrerUid);
+                                        batch.update(referrerRef, {
+                                            coins: firebase.firestore.FieldValue.increment(50),
+                                            referralsCount: firebase.firestore.FieldValue.increment(1),
+                                            referralsEarned: firebase.firestore.FieldValue.increment(50)
+                                        });
+                                        
+                                        batch.commit().then(() => {
+                                            localStorage.removeItem('pending_referral_code');
+                                            showToast(`🎉 Welcome bonus applied! +50 coins for you and your referrer!`, "success");
+                                            proceedToDashboard();
+                                        }).catch((err) => {
+                                            console.error("Referral batch failed on signup:", err);
+                                            createDefaultUser();
+                                        });
+                                    } else {
+                                        createDefaultUser();
+                                    }
+                                } else {
+                                    showToast("⚠️ Invalid signup referral code. Registering standard account.", "info");
+                                    createDefaultUser();
+                                }
+                            })
+                            .catch((err) => {
+                                console.error("Referral search failed on signup:", err);
+                                createDefaultUser();
+                            });
+                    } else {
+                        createDefaultUser();
+                    }
                 }
-                showScreen('dashboard');
-                startCooldownTimer();
-                buildStreakTracker();
-                loadWithdrawalList();
-                listenToGlobalWithdrawalsForBadge();
             }).catch((err) => {
                 showToast("⚠️ Firestore Sync Failed: " + err.message, "error");
                 currentUser = {
@@ -288,7 +399,14 @@
                     displayName: user.displayName,
                     email: user.email,
                     coins: 0,
-                    lastClaimedTimestamp: 0
+                    lastClaimedTimestamp: 0,
+                    adsWatchedTodayCount: 0,
+                    lastAdWatchDate: '',
+                    referralCode: user.uid.substring(0, 6).toUpperCase(),
+                    referredBy: '',
+                    referralsCount: 0,
+                    referralsEarned: 0,
+                    createdAt: Date.now()
                 };
                 showScreen('dashboard');
             });
@@ -298,13 +416,21 @@
         function loginSandbox() {
             const nameInput = document.getElementById('sandboxName').value.trim();
             const emailInput = document.getElementById('sandboxEmail').value.trim();
+            const emailKey = emailInput || 'sandbox@example.com';
+            const defaultRef = (emailKey.split('@')[0].toUpperCase().slice(0, 6) || 'SANDBOX').padEnd(6, 'X');
 
             currentUser = {
                 uid: 'sandbox_user_id',
                 displayName: nameInput || 'Sandbox Explorer',
-                email: emailInput || 'sandbox@example.com',
+                email: emailKey,
                 coins: 0,
-                lastClaimedTimestamp: 0
+                lastClaimedTimestamp: 0,
+                adsWatchedTodayCount: 0,
+                lastAdWatchDate: '',
+                referralCode: defaultRef,
+                referredBy: '',
+                referralsCount: 0,
+                referralsEarned: 0
             };
 
             const savedStats = localStorage.getItem(`sandbox_stats_${currentUser.email}`);
@@ -312,6 +438,60 @@
                 const stats = JSON.parse(savedStats);
                 currentUser.coins = stats.coins || 0;
                 currentUser.lastClaimedTimestamp = stats.lastClaimedTimestamp || 0;
+                currentUser.adsWatchedTodayCount = stats.adsWatchedTodayCount || 0;
+                currentUser.lastAdWatchDate = stats.lastAdWatchDate || '';
+                currentUser.referralCode = stats.referralCode || defaultRef;
+                currentUser.referredBy = stats.referredBy || '';
+                currentUser.referralsCount = stats.referralsCount || 0;
+                currentUser.referralsEarned = stats.referralsEarned || 0;
+            } else {
+                // First-time sandbox login/signup
+                const loginRefField = document.getElementById('loginReferralCode');
+                let signupCode = (loginRefField ? loginRefField.value.trim().toUpperCase() : '') || localStorage.getItem('pending_referral_code') || '';
+                
+                if (signupCode && signupCode !== defaultRef) {
+                    currentUser.coins = 50;
+                    currentUser.referredBy = signupCode;
+                    localStorage.removeItem('pending_referral_code');
+                    
+                    // Award simulated coins to referrer in local storage if referrer is a known sandbox email
+                    try {
+                        let referrerFoundKey = null;
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const key = localStorage.key(i);
+                            if (key.startsWith('sandbox_stats_')) {
+                                const val = JSON.parse(localStorage.getItem(key) || '{}');
+                                if (val.referralCode === signupCode) {
+                                    referrerFoundKey = key;
+                                    break;
+                                }
+                            }
+                        }
+                        if (referrerFoundKey) {
+                            const refStats = JSON.parse(localStorage.getItem(referrerFoundKey) || '{}');
+                            refStats.coins = (refStats.coins || 0) + 50;
+                            refStats.referralsCount = (refStats.referralsCount || 0) + 1;
+                            refStats.referralsEarned = (refStats.referralsEarned || 0) + 50;
+                            localStorage.setItem(referrerFoundKey, JSON.stringify(refStats));
+                            
+                            // Also append this simulated friend to the referrer's sandbox network
+                            const refEmail = referrerFoundKey.replace('sandbox_stats_', '');
+                            const sandboxReferrals = JSON.parse(localStorage.getItem(`sandbox_referrals_${refEmail}`) || '[]');
+                            sandboxReferrals.push({
+                                displayName: currentUser.displayName,
+                                email: currentUser.email,
+                                joinedDate: new Date().toLocaleDateString()
+                            });
+                            localStorage.setItem(`sandbox_referrals_${refEmail}`, JSON.stringify(sandboxReferrals));
+                        }
+                    } catch (e) {
+                        console.error("Simulated sandbox referrer search failed:", e);
+                    }
+                    
+                    setTimeout(() => {
+                        showToast(`🎉 Sandbox signup referral applied! +50 simulated coins credited!`, "success");
+                    }, 1000);
+                }
             }
 
             localStorage.setItem('sandbox_user', JSON.stringify(currentUser));
@@ -338,6 +518,75 @@
             }
         }
 
+        // Date helper and ad limit tracking helpers
+        function getTodayDateString() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function checkAndResetDailyAdLimit() {
+            if (!currentUser) return;
+            const todayStr = getTodayDateString();
+            if (currentUser.lastAdWatchDate !== todayStr) {
+                currentUser.adsWatchedTodayCount = 0;
+                currentUser.lastAdWatchDate = todayStr;
+                saveAdProgressToStorage();
+            }
+        }
+
+        function saveAdProgressToStorage() {
+            if (!currentUser) return;
+            if (connectionMode === 'firebase' && db) {
+                db.collection("Users").doc(currentUser.uid).update({
+                    adsWatchedTodayCount: currentUser.adsWatchedTodayCount,
+                    lastAdWatchDate: currentUser.lastAdWatchDate
+                }).catch(err => console.error("Error saving ad stats:", err));
+            } else {
+                localStorage.setItem(`sandbox_stats_${currentUser.email}`, JSON.stringify({
+                    coins: currentUser.coins,
+                    lastClaimedTimestamp: currentUser.lastClaimedTimestamp,
+                    adsWatchedTodayCount: currentUser.adsWatchedTodayCount,
+                    lastAdWatchDate: currentUser.lastAdWatchDate,
+                    referralCode: currentUser.referralCode,
+                    referredBy: currentUser.referredBy,
+                    referralsCount: currentUser.referralsCount,
+                    referralsEarned: currentUser.referralsEarned
+                }));
+                localStorage.setItem('sandbox_user', JSON.stringify(currentUser));
+            }
+        }
+
+        function saveUserStatsToStorage() {
+            if (!currentUser) return;
+            if (connectionMode === 'firebase' && db) {
+                db.collection("Users").doc(currentUser.uid).update({
+                    coins: currentUser.coins,
+                    lastClaimedTimestamp: currentUser.lastClaimedTimestamp,
+                    adsWatchedTodayCount: currentUser.adsWatchedTodayCount,
+                    lastAdWatchDate: currentUser.lastAdWatchDate,
+                    referralCode: currentUser.referralCode,
+                    referredBy: currentUser.referredBy,
+                    referralsCount: currentUser.referralsCount,
+                    referralsEarned: currentUser.referralsEarned
+                }).catch(err => console.error("Error saving user stats:", err));
+            } else {
+                localStorage.setItem(`sandbox_stats_${currentUser.email}`, JSON.stringify({
+                    coins: currentUser.coins,
+                    lastClaimedTimestamp: currentUser.lastClaimedTimestamp,
+                    adsWatchedTodayCount: currentUser.adsWatchedTodayCount,
+                    lastAdWatchDate: currentUser.lastAdWatchDate,
+                    referralCode: currentUser.referralCode,
+                    referredBy: currentUser.referredBy,
+                    referralsCount: currentUser.referralsCount,
+                    referralsEarned: currentUser.referralsEarned
+                }));
+                localStorage.setItem('sandbox_user', JSON.stringify(currentUser));
+            }
+        }
+
         // Refresh screen details
         function updateDashboardUI() {
             if (!currentUser) return;
@@ -350,6 +599,45 @@
             const names = currentUser.displayName.split(' ');
             const initials = names.map(n => n[0]).join('').slice(0, 2).toUpperCase();
             document.getElementById('userAvatar').innerText = initials || 'EX';
+
+            // Update Ads limit UI elements
+            checkAndResetDailyAdLimit();
+            const count = currentUser.adsWatchedTodayCount || 0;
+            const remaining = Math.max(0, 100 - count);
+            
+            const limitBadge = document.getElementById('adLimitBadge');
+            const countText = document.getElementById('adCountText');
+            const limitProgressBar = document.getElementById('adLimitProgressBar');
+            const mainWatchAdBtn = document.getElementById('mainWatchAdBtn');
+
+            if (limitBadge) {
+                limitBadge.innerText = `${remaining} / 100 Ads Left`;
+                if (remaining === 0) {
+                    limitBadge.className = "flex items-center space-x-2 bg-red-500/15 text-red-400 border border-red-500/30 px-4 py-2 rounded-xl shrink-0";
+                } else if (remaining < 20) {
+                    limitBadge.className = "flex items-center space-x-2 bg-orange-500/15 text-orange-400 border border-orange-500/30 px-4 py-2 rounded-xl shrink-0";
+                } else {
+                    limitBadge.className = "flex items-center space-x-2 bg-amber-500/10 text-amber-300 border border-amber-500/20 px-4 py-2 rounded-xl shrink-0";
+                }
+            }
+            if (countText) {
+                countText.innerText = `${count} of 100 Ads Completed Today`;
+            }
+            if (limitProgressBar) {
+                const percent = Math.min(100, (count / 100) * 100);
+                limitProgressBar.style.width = `${percent}%`;
+            }
+            if (mainWatchAdBtn) {
+                if (remaining === 0) {
+                    mainWatchAdBtn.disabled = true;
+                    mainWatchAdBtn.className = "w-full md:w-auto h-13 px-6 bg-cosmicSurfaceVariant text-gray-500 border border-borderDark font-bold text-xs rounded-xl transition-all cursor-not-allowed flex items-center justify-center space-x-2 shrink-0";
+                    mainWatchAdBtn.innerHTML = `<i data-lucide="lock" class="w-4 h-4 text-gray-500"></i><span>LIMIT REACHED (100/100)</span>`;
+                } else {
+                    mainWatchAdBtn.disabled = false;
+                    mainWatchAdBtn.className = "w-full md:w-auto h-13 px-6 bg-gradient-to-r from-amber-500 via-goldPrimary to-amber-400 hover:from-amber-600 hover:to-goldLight text-cosmicBg font-black text-sm rounded-xl transition-all shadow-md flex items-center justify-center space-x-2.5 transform hover:scale-[1.03] active:scale-95 shrink-0";
+                    mainWatchAdBtn.innerHTML = `<i data-lucide="play-circle" class="w-5 h-5 fill-cosmicBg"></i><span>WATCH REWARDED AD (+10)</span>`;
+                }
+            }
 
             const infoBanner = document.getElementById('infoBanner');
             const infoTitle = document.getElementById('infoBannerTitle');
@@ -364,6 +652,7 @@
                 infoTitle.innerText = "Sandbox Simulated Mode Active";
                 infoDesc.innerText = "All stats and payout history are simulated locally in this web browser. Setup your own Firebase credentials via the Settings panel in the navbar to connect a live production cloud.";
             }
+            lucide.createIcons();
         }
 
         // Switch internal navigation tabs
@@ -374,10 +663,11 @@
             document.getElementById('tabContent-daily').classList.add('hidden');
             document.getElementById('tabContent-ads').classList.add('hidden');
             document.getElementById('tabContent-withdraw').classList.add('hidden');
+            document.getElementById('tabContent-referral').classList.add('hidden');
             document.getElementById('tabContent-admin').classList.add('hidden');
 
             // Reset tab button styles
-            const tabs = ['daily', 'ads', 'withdraw', 'admin'];
+            const tabs = ['daily', 'ads', 'withdraw', 'referral', 'admin'];
             tabs.forEach(t => {
                 const btn = document.getElementById(`tabBtn-${t}`);
                 if (btn) {
@@ -397,6 +687,8 @@
             // Specific tab entry setups
             if (tabId === 'withdraw') {
                 loadWithdrawalList();
+            } else if (tabId === 'referral') {
+                loadReferralDetails();
             } else if (tabId === 'admin') {
                 setupAdminPanelVisibility();
             }
@@ -611,8 +903,17 @@
         function startAdSession(adProviderName) {
             if (!currentUser) return;
 
+            // Enforce daily limit check
+            checkAndResetDailyAdLimit();
+            const currentAdCount = currentUser.adsWatchedTodayCount || 0;
+            if (currentAdCount >= 100) {
+                showToast("⚠️ Daily ad limit reached (100/100). Please return tomorrow!", "error");
+                return;
+            }
+
             adTitleSelected = adProviderName;
             adSecondsLeft = 15;
+            adSessionStartTime = Date.now(); // Secure anti-cheat starting timestamp
 
             // Setup elements in ad modal
             document.getElementById('adTitleText').innerText = adProviderName;
@@ -698,27 +999,51 @@
                 return;
             }
 
+            // Secure real-time passage check (Anti-cheat)
+            const elapsed = Date.now() - adSessionStartTime;
+            if (adSessionStartTime === 0 || elapsed < 14500) {
+                showToast("⚠️ Anti-Cheat Check Failed: Ad watch duration insufficient. Reward denied.", "error");
+                adSessionStartTime = 0;
+                return;
+            }
+            adSessionStartTime = 0; // Reset after verification
+
+            // Enforce final check on limit before rewarding
+            checkAndResetDailyAdLimit();
+            if (currentUser.adsWatchedTodayCount >= 100) {
+                showToast("⚠️ Limit Exceeded: Daily rewarded ad cap reached (100/100). No reward granted.", "error");
+                return;
+            }
+
             const previousCoins = currentUser.coins;
             currentUser.coins += 10;
+            currentUser.adsWatchedTodayCount = (currentUser.adsWatchedTodayCount || 0) + 1;
+            currentUser.lastAdWatchDate = getTodayDateString();
 
             triggerConfettiSplatter();
 
             if (connectionMode === 'firebase' && db) {
                 const userRef = db.collection("Users").doc(currentUser.uid);
                 userRef.update({
-                    coins: currentUser.coins
+                    coins: currentUser.coins,
+                    adsWatchedTodayCount: currentUser.adsWatchedTodayCount,
+                    lastAdWatchDate: currentUser.lastAdWatchDate
                 }).then(() => {
                     showToast(`✨ Ad complete! +10 Coins added to cloud balance.`, "success");
                     updateDashboardUI();
                 }).catch((err) => {
                     showToast("❌ Cloud save failed: " + err.message, "error");
+                    // Rollback
                     currentUser.coins = previousCoins;
+                    currentUser.adsWatchedTodayCount = Math.max(0, currentUser.adsWatchedTodayCount - 1);
                     updateDashboardUI();
                 });
             } else {
                 localStorage.setItem(`sandbox_stats_${currentUser.email}`, JSON.stringify({
                     coins: currentUser.coins,
-                    lastClaimedTimestamp: currentUser.lastClaimedTimestamp
+                    lastClaimedTimestamp: currentUser.lastClaimedTimestamp,
+                    adsWatchedTodayCount: currentUser.adsWatchedTodayCount,
+                    lastAdWatchDate: currentUser.lastAdWatchDate
                 }));
                 localStorage.setItem('sandbox_user', JSON.stringify(currentUser));
 
@@ -1242,4 +1567,323 @@
                 toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
                 toast.classList.remove('opacity-100', 'translate-y-0');
             }, 4000);
+        }
+
+        // ================= REFERRAL SYSTEM LOGIC =================
+
+        function loadReferralDetails() {
+            if (!currentUser) return;
+
+            // 1. Render user's unique referral code & link
+            const refCode = currentUser.referralCode || 'REF-XYZ123';
+            document.getElementById('refCodeText').innerText = refCode;
+            
+            const origin = window.location.origin + window.location.pathname;
+            document.getElementById('refLinkText').innerText = `${origin}?ref=${refCode}`;
+
+            // 2. Pre-fill pending code if any from URL detection
+            const pendingCode = localStorage.getItem('pending_referral_code');
+            if (pendingCode && !currentUser.referredBy) {
+                const inputField = document.getElementById('inputReferralCode');
+                if (inputField && !inputField.value) {
+                    inputField.value = pendingCode;
+                    showToast(`💡 Pre-filled pending invite code: ${pendingCode}!`, 'info');
+                }
+            }
+
+            // 3. Render redeem form or success badge state
+            const formArea = document.getElementById('redeemFormArea');
+            const successArea = document.getElementById('redeemSuccessArea');
+            const redeemedBadge = document.getElementById('redeemedCodeBadge');
+
+            if (currentUser.referredBy) {
+                formArea.classList.add('hidden');
+                successArea.classList.remove('hidden');
+                redeemedBadge.innerText = currentUser.referredBy;
+            } else {
+                formArea.classList.remove('hidden');
+                successArea.classList.add('hidden');
+            }
+
+            // 4. Render stats & list based on Mode
+            const simBtn = document.getElementById('sandboxSimFriendBtn');
+            const container = document.getElementById('refNetworkContainer');
+
+            if (connectionMode === 'firebase') {
+                simBtn.classList.add('hidden');
+                
+                // Real-time Firestore network fetch
+                if (db) {
+                    db.collection("Users").where("referredBy", "==", refCode).get()
+                        .then((snapshot) => {
+                            currentUser.referralsCount = snapshot.size;
+                            currentUser.referralsEarned = snapshot.size * 50;
+                            
+                            document.getElementById('refCountNum').innerText = currentUser.referralsCount;
+                            document.getElementById('refCoinsNum').innerText = currentUser.referralsEarned;
+                            document.getElementById('refNetworkCount').innerText = `${currentUser.referralsCount} Active`;
+
+                            if (snapshot.empty) {
+                                renderEmptyReferralNetwork();
+                                return;
+                            }
+
+                            let html = '';
+                            snapshot.forEach((doc) => {
+                                const data = doc.data();
+                                const joinedDate = data.createdAt ? new Date(data.createdAt).toLocaleDateString() : 'Active Member';
+                                html += `
+                                    <div class="flex items-center justify-between p-3 bg-cosmicBg/40 border border-borderDark/40 rounded-xl">
+                                        <div class="flex items-center space-x-2.5 min-w-0">
+                                            <div class="w-8 h-8 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-xs font-black text-purple-400 shrink-0">
+                                                ${(data.displayName || 'Google')[0].toUpperCase()}
+                                            </div>
+                                            <div class="min-w-0">
+                                                <span class="text-xs font-bold text-white block truncate">${data.displayName || 'Google Explorer'}</span>
+                                                <span class="text-[9px] text-gray-500 block truncate">${data.email || 'Verified user'}</span>
+                                            </div>
+                                        </div>
+                                        <div class="text-right shrink-0">
+                                            <span class="text-xs font-black text-goldPrimary block">+50 Coins</span>
+                                            <span class="text-[9px] text-gray-500 block">${joinedDate}</span>
+                                        </div>
+                                    </div>
+                                `;
+                            });
+                            container.innerHTML = html;
+                            lucide.createIcons();
+                        })
+                        .catch((err) => {
+                            console.error("Firestore referral load error:", err);
+                            renderEmptyReferralNetwork();
+                        });
+                }
+            } else {
+                // Sandbox Mode
+                simBtn.classList.remove('hidden');
+
+                document.getElementById('refCountNum').innerText = currentUser.referralsCount || 0;
+                document.getElementById('refCoinsNum').innerText = currentUser.referralsEarned || 0;
+                document.getElementById('refNetworkCount').innerText = `${currentUser.referralsCount || 0} Active`;
+
+                const sandboxReferrals = JSON.parse(localStorage.getItem(`sandbox_referrals_${currentUser.email}`) || '[]');
+                if (sandboxReferrals.length === 0) {
+                    renderEmptyReferralNetwork();
+                    return;
+                }
+
+                let html = '';
+                sandboxReferrals.forEach((friend) => {
+                    html += `
+                        <div class="flex items-center justify-between p-3 bg-cosmicBg/40 border border-borderDark/40 rounded-xl">
+                            <div class="flex items-center space-x-2.5 min-w-0">
+                                <div class="w-8 h-8 rounded-full bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-xs font-black text-purple-400 shrink-0">
+                                    ${friend.displayName[0].toUpperCase()}
+                                </div>
+                                <div class="min-w-0">
+                                    <span class="text-xs font-bold text-white block truncate">${friend.displayName}</span>
+                                    <span class="text-[9px] text-gray-500 block truncate">${friend.email}</span>
+                                </div>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <span class="text-xs font-black text-goldPrimary block">+50 Coins</span>
+                                <span class="text-[9px] text-gray-500 block">${friend.joinedDate}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+                lucide.createIcons();
+            }
+        }
+
+        function renderEmptyReferralNetwork() {
+            const container = document.getElementById('refNetworkContainer');
+            container.innerHTML = `
+                <div class="h-full flex flex-col items-center justify-center text-center py-8 text-gray-500">
+                    <i data-lucide="users" class="w-10 h-10 text-gray-600 mb-1.5"></i>
+                    <p class="text-xs font-semibold text-gray-400">Your network is empty</p>
+                    <p class="text-[10px] text-gray-600 max-w-[200px] mt-0.5">Share your referral link with friends and start earning together!</p>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function copyReferralCode() {
+            if (!currentUser) return;
+            const code = currentUser.referralCode || '';
+            navigator.clipboard.writeText(code).then(() => {
+                showToast("📋 Referral Code copied to clipboard!", "success");
+            }).catch(() => {
+                showToast("❌ Copy failed, copy manually: " + code, "error");
+            });
+        }
+
+        function copyReferralLink() {
+            if (!currentUser) return;
+            const code = currentUser.referralCode || '';
+            const origin = window.location.origin + window.location.pathname;
+            const link = `${origin}?ref=${code}`;
+            navigator.clipboard.writeText(link).then(() => {
+                showToast("🔗 Referral Link copied! Share with friends.", "success");
+            }).catch(() => {
+                showToast("❌ Copy failed, copy manually: " + link, "error");
+            });
+        }
+
+        function redeemFriendCode() {
+            if (!currentUser) return;
+
+            const codeField = document.getElementById('inputReferralCode');
+            const targetCode = codeField.value.trim().toUpperCase();
+
+            if (!targetCode) {
+                showToast("⚠️ Please enter a valid referral code first.", "error");
+                return;
+            }
+
+            if (currentUser.referredBy) {
+                showToast("⚠️ You have already redeemed a referral code!", "error");
+                return;
+            }
+
+            if (targetCode === currentUser.referralCode) {
+                showToast("❌ You cannot redeem your own referral code!", "error");
+                return;
+            }
+
+            showToast("⚙️ Verifying invite code...", "info");
+
+            if (connectionMode === 'firebase') {
+                if (!db) {
+                    showToast("❌ Firestore not initialized", "error");
+                    return;
+                }
+
+                // Check Firestore for referralCode
+                db.collection("Users").where("referralCode", "==", targetCode).get()
+                    .then((snapshot) => {
+                        if (snapshot.empty) {
+                            showToast("❌ Invalid referral code. Please check and try again.", "error");
+                            return;
+                        }
+
+                        const referrerDoc = snapshot.docs[0];
+                        const referrerUid = referrerDoc.id;
+
+                        if (referrerUid === currentUser.uid) {
+                            showToast("❌ You cannot redeem your own code!", "error");
+                            return;
+                        }
+
+                        // Write to Firestore with Batch transaction
+                        const batch = db.batch();
+                        
+                        // 1. Give current user +50 Coins and save referredBy status
+                        const currentRef = db.collection("Users").doc(currentUser.uid);
+                        batch.update(currentRef, {
+                            coins: firebase.firestore.FieldValue.increment(50),
+                            referredBy: targetCode
+                        });
+
+                        // 2. Give referrer +50 Coins, increment referral stats
+                        const referrerRef = db.collection("Users").doc(referrerUid);
+                        batch.update(referrerRef, {
+                            coins: firebase.firestore.FieldValue.increment(50),
+                            referralsCount: firebase.firestore.FieldValue.increment(1),
+                            referralsEarned: firebase.firestore.FieldValue.increment(50)
+                        });
+
+                        batch.commit().then(() => {
+                            // Update local attributes
+                            currentUser.coins += 50;
+                            currentUser.referredBy = targetCode;
+                            
+                            localStorage.removeItem('pending_referral_code');
+
+                            showToast("🏆 Referral claimed successfully! +50 Coins Added!", "success");
+                            
+                            updateDashboardUI();
+                            loadReferralDetails();
+                        }).catch((err) => {
+                            showToast("❌ Transaction failed: " + err.message, "error");
+                        });
+                    })
+                    .catch((err) => {
+                        showToast("⚠️ Firebase error: " + err.message, "error");
+                    });
+            } else {
+                // Sandbox Mode Simulation
+                currentUser.coins += 50;
+                currentUser.referredBy = targetCode;
+
+                localStorage.removeItem('pending_referral_code');
+                saveUserStatsToStorage();
+
+                showToast("🏆 Referral claimed successfully! +50 Simulated Coins Added!", "success");
+                
+                updateDashboardUI();
+                loadReferralDetails();
+            }
+        }
+
+        function simulateFriendSignup() {
+            if (!currentUser || connectionMode !== 'sandbox') return;
+
+            const names = ["Aarav Singh", "Ananya Sharma", "Kabir Gupta", "Ishaan Malhotra", "Diya Verma", "Rohan Mehta"];
+            const domains = ["gmail.com", "yahoo.com", "outlook.com", "icloud.com"];
+            
+            const randomName = names[Math.floor(Math.random() * names.length)] + " " + Math.floor(Math.random() * 100);
+            const randomEmail = randomName.toLowerCase().replace(" ", "") + "@" + domains[Math.floor(Math.random() * domains.length)];
+            const dateStr = new Date().toLocaleDateString();
+
+            const simulatedFriend = {
+                displayName: randomName,
+                email: randomEmail,
+                joinedDate: dateStr
+            };
+
+            // Retrieve current list, append, save
+            const sandboxReferrals = JSON.parse(localStorage.getItem(`sandbox_referrals_${currentUser.email}`) || '[]');
+            sandboxReferrals.push(simulatedFriend);
+            localStorage.setItem(`sandbox_referrals_${currentUser.email}`, JSON.stringify(sandboxReferrals));
+
+            // Award +50 coins to current user
+            currentUser.coins += 50;
+            currentUser.referralsCount = (currentUser.referralsCount || 0) + 1;
+            currentUser.referralsEarned = (currentUser.referralsEarned || 0) + 50;
+
+            saveUserStatsToStorage();
+
+            showToast(`✨ Friend '${randomName}' signed up! +50 Referral Coins credited.`, "success");
+            
+            updateDashboardUI();
+            loadReferralDetails();
+        }
+
+        function shareReferralLink() {
+            if (!currentUser) return;
+            const code = currentUser.referralCode || '';
+            const origin = window.location.origin + window.location.pathname;
+            const link = `${origin}?ref=${code}`;
+            const title = "Daily Rewards - Earn Free Coins!";
+            const text = `Join Daily Rewards using my referral code ${code} and get +50 coins instantly!`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: title,
+                    text: text,
+                    url: link
+                }).then(() => {
+                    showToast("🎉 Shared successfully!", "success");
+                }).catch((err) => {
+                    console.log("Share failed or canceled", err);
+                });
+            } else {
+                navigator.clipboard.writeText(link).then(() => {
+                    showToast("🔗 Share API not supported. Referral Link copied instead!", "info");
+                }).catch(() => {
+                    showToast("❌ Copy failed, copy manually: " + link, "error");
+                });
+            }
         }
