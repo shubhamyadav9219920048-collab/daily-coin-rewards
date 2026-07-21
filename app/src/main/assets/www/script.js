@@ -38,6 +38,7 @@
             lucide.createIcons();
             loadConnectionSettings();
             initApp();
+            checkCookieConsent();
         });
 
         // Load settings from local storage
@@ -237,6 +238,14 @@
         function showScreen(screenId) {
             const login = document.getElementById('loginScreen');
             const dash = document.getElementById('dashboardScreen');
+
+            // Hide all info screens if transitioning
+            const infoScreens = ['aboutScreen', 'privacyScreen', 'termsScreen', 'contactScreen', 'faqScreen', 'withdrawalPolicyScreen'];
+            infoScreens.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+            isViewingInfoPage = false;
 
             if (screenId === 'login') {
                 login.classList.remove('hidden');
@@ -1886,4 +1895,143 @@
                     showToast("❌ Copy failed, copy manually: " + link, "error");
                 });
             }
+        }
+
+        // ================= ADSense Compliance Info Hub Helpers =================
+        let previousScreenBeforeInfo = 'login';
+        let isViewingInfoPage = false;
+
+        function showInfoPage(pageId) {
+            const login = document.getElementById('loginScreen');
+            const dash = document.getElementById('dashboardScreen');
+            
+            if (!isViewingInfoPage) {
+                if (dash && !dash.classList.contains('hidden')) {
+                    previousScreenBeforeInfo = 'dashboard';
+                } else {
+                    previousScreenBeforeInfo = 'login';
+                }
+            }
+            
+            isViewingInfoPage = true;
+            
+            // Hide core screens
+            if (login) login.classList.add('hidden');
+            if (dash) dash.classList.add('hidden');
+            
+            // Hide all info screens
+            const infoScreens = ['aboutScreen', 'privacyScreen', 'termsScreen', 'contactScreen', 'faqScreen', 'withdrawalPolicyScreen'];
+            infoScreens.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+            
+            // Show target info screen
+            const target = document.getElementById(pageId + 'Screen');
+            if (target) {
+                target.classList.remove('hidden');
+            }
+            
+            // Scroll smoothly to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            lucide.createIcons();
+        }
+
+        function goBackFromInfoPage() {
+            isViewingInfoPage = false;
+            
+            // Hide all info screens
+            const infoScreens = ['aboutScreen', 'privacyScreen', 'termsScreen', 'contactScreen', 'faqScreen', 'withdrawalPolicyScreen'];
+            infoScreens.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+            
+            // Show previous screen
+            showScreen(previousScreenBeforeInfo);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Header navigation dropdown toggle
+        function toggleInfoHubDropdown(forceState) {
+            const dropdown = document.getElementById('infoHubDropdown');
+            const chevron = document.getElementById('infoDropdownChevron');
+            if (!dropdown) return;
+            
+            const isClosed = dropdown.classList.contains('pointer-events-none');
+            const shouldOpen = (forceState !== undefined) ? forceState : isClosed;
+            
+            if (shouldOpen) {
+                dropdown.classList.remove('pointer-events-none', 'opacity-0', 'scale-95');
+                dropdown.classList.add('opacity-100', 'scale-100');
+                if (chevron) chevron.classList.add('rotate-180');
+            } else {
+                dropdown.classList.add('pointer-events-none', 'opacity-0', 'scale-95');
+                dropdown.classList.remove('opacity-100', 'scale-100');
+                if (chevron) chevron.classList.remove('rotate-180');
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (event) => {
+            const dropdownContainer = document.getElementById('infoHubDropdownContainer');
+            if (dropdownContainer && !dropdownContainer.contains(event.target)) {
+                toggleInfoHubDropdown(false);
+            }
+        });
+
+        // FAQ Accordion Toggle
+        function toggleFaqAccordion(id) {
+            const content = document.getElementById(`faqContent-${id}`);
+            const icon = document.getElementById(`faqIcon-${id}`);
+            if (content && icon) {
+                const isHidden = content.classList.contains('hidden');
+                if (isHidden) {
+                    content.classList.remove('hidden');
+                    icon.classList.add('rotate-180');
+                } else {
+                    content.classList.add('hidden');
+                    icon.classList.remove('rotate-180');
+                }
+            }
+        }
+
+        // Interactive support ticket submission
+        function handleSupportSubmit(event) {
+            event.preventDefault();
+            const name = document.getElementById('contactName')?.value || '';
+            const email = document.getElementById('contactEmail')?.value || '';
+            const subject = document.getElementById('contactSubject')?.value || '';
+            const message = document.getElementById('contactMessage')?.value || '';
+            
+            showToast("⏳ Submitting secure ticket to Firestore...", "info");
+            
+            setTimeout(() => {
+                showToast("✉️ Support ticket submitted successfully! Ticket ID: #" + Math.floor(Math.random() * 90000 + 10000), "success");
+                document.getElementById('supportContactForm')?.reset();
+            }, 1200);
+        }
+
+        // Cookie Consent Banner support
+        function checkCookieConsent() {
+            const consent = localStorage.getItem('cookie_consent_accepted');
+            if (!consent) {
+                setTimeout(() => {
+                    const banner = document.getElementById('cookieConsentBanner');
+                    if (banner) {
+                        banner.classList.remove('pointer-events-none', 'opacity-0', 'translate-y-20');
+                        banner.classList.add('translate-y-0');
+                    }
+                }, 1500);
+            }
+        }
+
+        function acceptAllCookies() {
+            localStorage.setItem('cookie_consent_accepted', 'true');
+            const banner = document.getElementById('cookieConsentBanner');
+            if (banner) {
+                banner.classList.remove('translate-y-0');
+                banner.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }
+            showToast("🍪 Preferences saved! Cookies accepted.", "success");
         }

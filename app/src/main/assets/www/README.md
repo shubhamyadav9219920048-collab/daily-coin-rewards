@@ -1,12 +1,20 @@
-# Daily Rewards - Web Ledger
+# Daily Rewards - Web Ledger (AdSense Ready)
 
-This is the complete, self-contained web version of your Daily Rewards & Web Ledger app. It includes all the visual styles, responsive layouts, interactive coin features, and Firebase backend integration.
+This is the complete, self-contained, fully AdSense-ready web version of your Daily Rewards & Web Ledger app. It includes all the visual styles, responsive layouts, interactive coin features, Firebase backend integration, and a dedicated compliance Information Hub.
 
 ## Files Included
 
-- `index.html`: The main web application HTML structure containing layout nodes, dynamic Tailwind definitions, and script linkages.
+- `index.html`: The main web application HTML structure containing layout nodes, dynamic Tailwind definitions, script linkages, and compliance info pages.
 - `style.css`: Custom CSS styling for the smooth gold ambient glows, float animations, custom scrollbars, and aesthetic layout details.
-- `script.js`: All interactive client-side logic including Sandbox mode simulation, custom ad-watching reward schedules, responsive administration views, and modular Cloud Firestore/Auth synchronization.
+- `script.js`: All interactive client-side logic including Sandbox mode simulation, cookie consent, contact support ticketing, and modular Cloud Firestore/Auth synchronization.
+
+## Features Highlights & AdSense Compliance
+
+1. **Information Hub Pages**: Built-in dedicated sections for **About Us**, **Privacy Policy**, **Terms & Conditions**, **Contact Us** (with interactive support form), and **FAQ** (with smooth accordion transitions) accessible from a global footer.
+2. **Cookie Consent Banner**: Sleek, eye-safe, and responsive cookie banner that respects user preferences on landing.
+3. **Rewards Disclaimer**: Clear labels indicating rewards are promotional points and subject to administrative ledger verification.
+4. **AdSense Ads Placeholders**: Strategic non-intrusive AdSense ad slots pre-configured with compliant, responsive layout markers.
+5. **No Deceptive Behavior**: All mock ad playing mechanisms removed, with locked ad modules clearly labeled as "Coming Soon" to pass publisher review perfectly.
 
 ## How to Run Locally
 

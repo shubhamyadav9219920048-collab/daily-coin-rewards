@@ -3,7 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily Rewards - Web Ledger</title>
+    <title>Daily Rewards Pro - Premium Loyalty Coin Ledger</title>
+    <meta name="description" content="Claim daily rewards, grow your referral network, and securely manage your loyalty coin balance with Daily Rewards Pro. Free, fast, and secure UPI payouts with manual verification.">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://dailyrewardspro.com/">
+    <meta property="og:title" content="Daily Rewards Pro - Premium Loyalty Coin Ledger">
+    <meta property="og:description" content="Claim daily rewards, grow your referral network, and securely manage your loyalty coin balance with Daily Rewards Pro. Free, fast, and secure UPI payouts with manual verification.">
+    <meta property="og:image" content="https://dailyrewardspro.com/assets/og_banner.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://dailyrewardspro.com/">
+    <meta property="twitter:title" content="Daily Rewards Pro - Premium Loyalty Coin Ledger">
+    <meta property="twitter:description" content="Claim daily rewards, grow your referral network, and securely manage your loyalty coin balance with Daily Rewards Pro. Free, fast, and secure UPI payouts with manual verification.">
+    <meta property="twitter:image" content="https://dailyrewardspro.com/assets/og_banner.png">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -76,6 +91,42 @@
             </div>
             
             <div class="flex items-center space-x-2">
+                <!-- Info Hub Dropdown Menu -->
+                <div class="relative inline-block text-left" id="infoHubDropdownContainer">
+                    <button onclick="toggleInfoHubDropdown()" class="flex items-center space-x-1.5 px-3 py-2 bg-cosmicSurfaceVariant hover:bg-gray-700 border border-borderDark text-gray-300 rounded-xl text-xs font-bold transition-all shadow-md focus:outline-none" title="Information Hub">
+                        <i data-lucide="info" class="w-4 h-4 text-goldPrimary"></i>
+                        <span class="hidden md:inline">Info Pages</span>
+                        <i data-lucide="chevron-down" class="w-3.5 h-3.5 transition-transform duration-200" id="infoDropdownChevron"></i>
+                    </button>
+                    <!-- Dropdown Overlay Menu -->
+                    <div id="infoHubDropdown" class="absolute right-0 mt-2 w-56 bg-cosmicSurface border border-borderDark rounded-2xl shadow-2xl py-2 z-50 transform scale-95 opacity-0 pointer-events-none transition-all duration-200 origin-top-right">
+                        <button onclick="showInfoPage('about'); toggleInfoHubDropdown(false)" class="w-full text-left px-4 py-2.5 text-xs font-bold text-gray-300 hover:text-white hover:bg-cosmicSurfaceVariant transition-all flex items-center space-x-2.5">
+                            <span class="text-sm">ℹ️</span>
+                            <span>About Us</span>
+                        </button>
+                        <button onclick="showInfoPage('privacy'); toggleInfoHubDropdown(false)" class="w-full text-left px-4 py-2.5 text-xs font-bold text-gray-300 hover:text-white hover:bg-cosmicSurfaceVariant transition-all flex items-center space-x-2.5">
+                            <span class="text-sm">🔒</span>
+                            <span>Privacy Policy</span>
+                        </button>
+                        <button onclick="showInfoPage('terms'); toggleInfoHubDropdown(false)" class="w-full text-left px-4 py-2.5 text-xs font-bold text-gray-300 hover:text-white hover:bg-cosmicSurfaceVariant transition-all flex items-center space-x-2.5">
+                            <span class="text-sm">📋</span>
+                            <span>Terms & Conditions</span>
+                        </button>
+                        <button onclick="showInfoPage('contact'); toggleInfoHubDropdown(false)" class="w-full text-left px-4 py-2.5 text-xs font-bold text-gray-300 hover:text-white hover:bg-cosmicSurfaceVariant transition-all flex items-center space-x-2.5">
+                            <span class="text-sm">✉️</span>
+                            <span>Contact Us</span>
+                        </button>
+                        <button onclick="showInfoPage('faq'); toggleInfoHubDropdown(false)" class="w-full text-left px-4 py-2.5 text-xs font-bold text-gray-300 hover:text-white hover:bg-cosmicSurfaceVariant transition-all flex items-center space-x-2.5">
+                            <span class="text-sm">❓</span>
+                            <span>FAQ</span>
+                        </button>
+                        <button onclick="showInfoPage('withdrawalPolicy'); toggleInfoHubDropdown(false)" class="w-full text-left px-4 py-2.5 text-xs font-bold text-gray-300 hover:text-white hover:bg-cosmicSurfaceVariant transition-all flex items-center space-x-2.5 border-t border-borderDark/40 pt-2 mt-1.5">
+                            <span class="text-sm">💸</span>
+                            <span>Withdrawal Policy</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Connection Badge -->
                 <div id="connectionBadge" class="flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-orange-500/10 text-orange-400 border border-orange-500/20 cursor-pointer" onclick="toggleConfigDrawer(true)">
                     <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
@@ -203,6 +254,91 @@
                     </div>
                     <h4 class="text-sm font-extrabold text-white mb-1.5">Admin Control Hub</h4>
                     <p class="text-[11px] text-gray-400 leading-relaxed">Master-protected portal for admins to easily review, filter, approve, and reject real-time payouts.</p>
+                </div>
+            </div>
+
+            <!-- Rich Platform Explanations Section (Requirement 7) -->
+            <div class="w-full max-w-4xl mt-16 bg-cosmicSurface/80 border border-borderDark rounded-3xl p-6 md:p-10 shadow-2xl space-y-8 mx-auto animate-fadeIn relative">
+                <div class="text-center">
+                    <span class="text-[10px] bg-goldPrimary/10 border border-goldPrimary/20 px-3 py-1 rounded-full font-bold text-goldPrimary tracking-widest uppercase">Comprehensive Program Guide</span>
+                    <h3 class="text-2xl md:text-3xl font-black text-white mt-2">How Daily Rewards Pro Works</h3>
+                    <p class="text-xs md:text-sm text-gray-400 mt-1 max-w-lg mx-auto">Get transparent insights into our secure ledger mechanics, rewards cycle, and anti-fraud guidelines.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                    <!-- Explain 1: What is Daily Rewards Pro -->
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-2.5">
+                            <span class="text-xl">🛡️</span>
+                            <h4 class="text-base font-extrabold text-white">What is Daily Rewards Pro?</h4>
+                        </div>
+                        <p class="text-xs text-gray-400 leading-relaxed">
+                            Daily Rewards Pro is an advanced promotional rewards platform built around a secure digital coin ledger. By engaging with daily login calendars and invite programs, users accumulate loyalty points in the form of virtual coins. Our infrastructure guarantees ledger accuracy and syncs immediately to real-time cloud Firestore databases.
+                        </p>
+                    </div>
+
+                    <!-- Explain 2: How Users Earn Coins -->
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-2.5">
+                            <span class="text-xl">⚡</span>
+                            <h4 class="text-base font-extrabold text-white">How Do I Earn Coins?</h4>
+                        </div>
+                        <p class="text-xs text-gray-400 leading-relaxed">
+                            Earning is simple, linear, and completely free. Standard users can tap the <strong>Daily Coin</strong> to instantly stack +10 coins every 24 hours. Additionally, expanding your network via our referral engine rewards both the invitee and invited partner. (Rewarded video ad features are currently coming soon pending Google publisher audits).
+                        </p>
+                    </div>
+
+                    <!-- Explain 3: Referral Mechanics -->
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-2.5">
+                            <span class="text-xl">👥</span>
+                            <h4 class="text-base font-extrabold text-white">How Do Referrals Work?</h4>
+                        </div>
+                        <p class="text-xs text-gray-400 leading-relaxed">
+                            Once logged in, you receive a unique, server-generated 6-character referral code and sharing link. When a new user signs up or claims your invite code, our batch-transaction system immediately distributes <strong>+50 coins</strong> to your ledger AND <strong>+50 coins</strong> to the invitee's balance. There are no referral networks depth caps!
+                        </p>
+                    </div>
+
+                    <!-- Explain 4: Withdrawal & Payout Portal -->
+                    <div class="space-y-2">
+                        <div class="flex items-center space-x-2.5">
+                            <span class="text-xl">💳</span>
+                            <h4 class="text-base font-extrabold text-white">How Withdrawals Work</h4>
+                        </div>
+                        <p class="text-xs text-gray-400 leading-relaxed">
+                            Once your ledger reaches <strong>1000 coins</strong> (equivalent to ₹10 payout value), you can request payout directly to any registered UPI ID. Payout requests do not immediately deduct from your ledger; they enter a verification queue. Certified administrators review account activity logs for strict compliance before processing.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Rules and Disclaimer Box -->
+                <div class="border-t border-borderDark/60 pt-6 mt-6">
+                    <div class="bg-red-500/5 border border-red-500/25 p-5 rounded-2xl">
+                        <h4 class="text-sm font-bold text-red-400 flex items-center mb-2">
+                            <i data-lucide="shield-alert" class="w-4 h-4 mr-2"></i> Important Integrity & Fraud Rules
+                        </h4>
+                        <p class="text-xs text-gray-400 leading-relaxed mb-3">
+                            To ensure an ethical, AdSense-ready publishing network and protect our sponsoring partners, we maintain automated security scans. Violation of these terms leads to an instant, permanent device ban and forfeiture of all balances:
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-400 font-medium">
+                            <div class="flex items-center space-x-2">
+                                <span class="text-red-400">❌</span>
+                                <span>No VPN, proxies, or Tor IP spoofing</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-red-400">❌</span>
+                                <span>Strictly 1 account per physical device</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-red-400">❌</span>
+                                <span>No bots, autoclickers, or emulator execution</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-red-400">❌</span>
+                                <span>No self-referral/fake-account spamming</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -375,114 +511,51 @@
 
             <!-- ================= TAB CONTENT 2: WATCH ADS & EARN ================= -->
             <div id="tabContent-ads" class="space-y-6 hidden">
-                <div class="bg-gradient-to-tr from-cosmicSurface to-cosmicSurfaceVariant border border-borderDark rounded-3xl p-6 relative overflow-hidden shadow-xl">
-                    <div class="absolute -top-12 -right-12 w-32 h-32 bg-amberAccent/10 rounded-full blur-2xl"></div>
+                <div class="bg-gradient-to-tr from-cosmicSurface to-cosmicSurfaceVariant border border-borderDark rounded-3xl p-6 md:p-8 relative overflow-hidden shadow-xl text-center animate-fadeIn">
+                    <div class="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/5 rounded-full blur-2xl"></div>
                     
-                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-borderDark/40 pb-5">
-                        <div class="flex items-center space-x-3">
-                            <div class="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amberAccent">
-                                <i data-lucide="tv" class="w-6 h-6 animate-pulse"></i>
+                    <div class="max-w-md mx-auto py-8 space-y-6">
+                        <div class="w-16 h-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-3xl mx-auto shadow-inner animate-pulse">
+                            🎬
+                        </div>
+                        <div class="space-y-2">
+                            <span class="text-[9px] bg-amber-500/10 text-amber-300 border border-amber-500/20 px-3 py-1 rounded-full font-bold tracking-widest uppercase">Under Google Publisher Review</span>
+                            <h3 class="text-xl md:text-2xl font-black text-white">Rewarded Ads Coming Soon</h3>
+                            <p class="text-xs text-gray-400 leading-relaxed">
+                                We are currently completing integration compliance with <strong>Google AdSense</strong> and major premium ad network SDKs. In accordance with publisher guidelines, simulated ad mockups have been deactivated.
+                            </p>
+                        </div>
+
+                        <!-- Live Status Steps -->
+                        <div class="bg-cosmicBg/60 border border-borderDark rounded-2xl p-4 text-left space-y-3">
+                            <div class="flex items-center justify-between text-xs border-b border-borderDark/40 pb-2">
+                                <span class="text-gray-400 font-medium">Integration Status</span>
+                                <span class="text-amber-400 font-bold bg-amber-500/15 border border-amber-500/20 px-2 py-0.5 rounded text-[10px] tracking-wider uppercase">Awaiting Approval</span>
                             </div>
-                            <div>
-                                <h3 class="text-xl font-bold text-white">Watch & Earn</h3>
-                                <p class="text-xs text-gray-400">Complete premium visual video ads to earn free coins! (Max 100/day)</p>
+                            <div class="space-y-2.5 text-xs">
+                                <div class="flex items-center space-x-2 text-emerald-400 font-semibold">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                    <span>Step 1: Technical SDK Core Configured (Done)</span>
+                                </div>
+                                <div class="flex items-center space-x-2 text-emerald-400 font-semibold">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                    <span>Step 2: Remove Deceptive Playback Mockups (Done)</span>
+                                </div>
+                                <div class="flex items-center space-x-2 text-amber-400 animate-pulse font-semibold">
+                                    <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+                                    <span>Step 3: Google AdSense Review Queue (Pending)</span>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Live Remainder Badge -->
-                        <div class="flex items-center space-x-2 bg-cosmicBg/50 border border-borderDark px-4 py-2 rounded-xl shrink-0">
-                            <div class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></div>
-                            <span class="text-xs text-amber-300 font-extrabold" id="adLimitBadge">100 / 100 Ads Left</span>
+                        <div class="p-4 bg-goldPrimary/5 border border-goldPrimary/20 rounded-xl text-[11px] text-goldLight text-left leading-normal">
+                            ⚠️ Once approved, you can watch sponsored trailers here and earn <strong class="text-white">+10 Coins</strong> per clip credited directly to your secure balance. Currently, this tab is locked to preserve publisher account compliance.
                         </div>
-                    </div>
 
-                    <!-- Daily Limit Stats Bar -->
-                    <div class="mt-5 p-4 bg-cosmicBg/50 border border-borderDark/50 rounded-2xl">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-1.5">
-                            <span class="text-[11px] text-gray-400 font-bold uppercase tracking-widest">Daily Ad Cooldown Ledger</span>
-                            <span class="text-xs text-gray-300 font-extrabold" id="adCountText">0 of 100 Ads Completed Today</span>
-                        </div>
-                        <div class="w-full bg-cosmicBg h-2.5 rounded-full overflow-hidden border border-borderDark">
-                            <div id="adLimitProgressBar" class="h-full bg-gradient-to-r from-amber-500 via-goldPrimary to-yellow-300 w-0 transition-all duration-700 shadow-md"></div>
-                        </div>
-                    </div>
-
-                    <!-- Main Prominent Watch Rewarded Ad Action Card -->
-                    <div class="mt-6 p-5 bg-gradient-to-r from-amber-500/5 to-goldPrimary/5 border border-amber-500/20 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-5 relative overflow-hidden">
-                        <div class="text-left w-full md:w-auto">
-                            <span class="text-[9px] bg-amber-500/15 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">Premium Reward Video</span>
-                            <h4 class="text-base font-extrabold text-white mt-1.5 flex items-center">
-                                <span class="mr-1.5">🎬</span> Instant Watch Rewarded Ad
-                            </h4>
-                            <p class="text-xs text-gray-400 mt-1 max-w-sm">Completing a full 15-second visual sponsor trailer grants <b class="text-goldLight">+10 Coins</b> directly to your secure balance.</p>
-                        </div>
-                        <button id="mainWatchAdBtn" onclick="startAdSession('Premium Rewarded Video Ad')" class="w-full md:w-auto h-13 px-6 bg-gradient-to-r from-amber-500 via-goldPrimary to-amber-400 hover:from-amber-600 hover:to-goldLight text-cosmicBg font-black text-sm rounded-xl transition-all shadow-md flex items-center justify-center space-x-2.5 transform hover:scale-[1.03] active:scale-95 shrink-0">
-                            <i data-lucide="play-circle" class="w-5 h-5 fill-cosmicBg"></i>
-                            <span>WATCH REWARDED AD (+10)</span>
+                        <button disabled class="w-full h-12 bg-cosmicSurfaceVariant text-gray-500 border border-borderDark font-bold text-sm rounded-xl cursor-not-allowed transition-all flex items-center justify-center space-x-2">
+                            <i data-lucide="lock" class="w-4 h-4 text-gray-500"></i>
+                            <span>Module Locked (Pending AdSense Approval)</span>
                         </button>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <!-- Ad Provider Card 1 -->
-                        <div class="bg-cosmicBg/60 border border-borderDark hover:border-goldPrimary/40 rounded-2xl p-5 flex flex-col justify-between transition-all group">
-                            <div>
-                                <span class="text-[10px] font-extrabold text-goldPrimary tracking-widest bg-goldPrimary/10 border border-goldPrimary/20 px-2 py-0.5 rounded">HIGH VALUE</span>
-                                <h4 class="text-base font-bold text-white mt-2">Ad-Colony Premium Video</h4>
-                                <p class="text-xs text-gray-400 mt-1">Watch a 15-second visual dynamic trailer ad.</p>
-                            </div>
-                            <div class="flex items-center justify-between mt-6 pt-4 border-t border-borderDark/40">
-                                <span class="text-sm font-black text-goldPrimary flex items-center"><span class="mr-1">🪙</span>+10 Coins</span>
-                                <button onclick="startAdSession('Ad-Colony Video Stream')" class="px-4 py-2 bg-gradient-to-r from-goldPrimary to-amber-500 hover:from-goldLight hover:to-goldPrimary text-cosmicBg font-extrabold text-xs rounded-xl transition-all shadow group-hover:scale-105">
-                                    Watch & Earn
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Ad Provider Card 2 -->
-                        <div class="bg-cosmicBg/60 border border-borderDark hover:border-goldPrimary/40 rounded-2xl p-5 flex flex-col justify-between transition-all group">
-                            <div>
-                                <span class="text-[10px] font-extrabold text-emerald-400 tracking-widest bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">FAST LOAD</span>
-                                <h4 class="text-base font-bold text-white mt-2">Unity Ad Network Stream</h4>
-                                <p class="text-xs text-gray-400 mt-1">A fast-paced casual application ad demonstration.</p>
-                            </div>
-                            <div class="flex items-center justify-between mt-6 pt-4 border-t border-borderDark/40">
-                                <span class="text-sm font-black text-goldPrimary flex items-center"><span class="mr-1">🪙</span>+10 Coins</span>
-                                <button onclick="startAdSession('Unity Ad Network')" class="px-4 py-2 bg-gradient-to-r from-goldPrimary to-amber-500 hover:from-goldLight hover:to-goldPrimary text-cosmicBg font-extrabold text-xs rounded-xl transition-all shadow group-hover:scale-105">
-                                    Watch & Earn
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Ad Provider Card 3 -->
-                        <div class="bg-cosmicBg/60 border border-borderDark hover:border-goldPrimary/40 rounded-2xl p-5 flex flex-col justify-between transition-all group">
-                            <div>
-                                <span class="text-[10px] font-extrabold text-blue-400 tracking-widest bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded">RECOMMENDED</span>
-                                <h4 class="text-base font-bold text-white mt-2">AppLovin Interstitial Reward</h4>
-                                <p class="text-xs text-gray-400 mt-1">Short engaging game preview. Earn +10 upon completion.</p>
-                            </div>
-                            <div class="flex items-center justify-between mt-6 pt-4 border-t border-borderDark/40">
-                                <span class="text-sm font-black text-goldPrimary flex items-center"><span class="mr-1">🪙</span>+10 Coins</span>
-                                <button onclick="startAdSession('AppLovin Showcase')" class="px-4 py-2 bg-gradient-to-r from-goldPrimary to-amber-500 hover:from-goldLight hover:to-goldPrimary text-cosmicBg font-extrabold text-xs rounded-xl transition-all shadow group-hover:scale-105">
-                                    Watch & Earn
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Ad Provider Card 4 -->
-                        <div class="bg-cosmicBg/60 border border-borderDark hover:border-goldPrimary/40 rounded-2xl p-5 flex flex-col justify-between transition-all group">
-                            <div>
-                                <span class="text-[10px] font-extrabold text-purple-400 tracking-widest bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded">NEW INTEGRATION</span>
-                                <h4 class="text-base font-bold text-white mt-2">Fyber Brand Offer</h4>
-                                <p class="text-xs text-gray-400 mt-1">High-definition marketing partner clip.</p>
-                            </div>
-                            <div class="flex items-center justify-between mt-6 pt-4 border-t border-borderDark/40">
-                                <span class="text-sm font-black text-goldPrimary flex items-center"><span class="mr-1">🪙</span>+10 Coins</span>
-                                <button onclick="startAdSession('Fyber Sponsor Clip')" class="px-4 py-2 bg-gradient-to-r from-goldPrimary to-amber-500 hover:from-goldLight hover:to-goldPrimary text-cosmicBg font-extrabold text-xs rounded-xl transition-all shadow group-hover:scale-105">
-                                    Watch & Earn
-                                </button>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -798,6 +871,407 @@
 
         </section>
 
+        <!-- ================= INFO PAGES ================= -->
+        <!-- ABOUT US PAGE -->
+        <section id="aboutScreen" class="w-full hidden space-y-6">
+            <button onclick="goBackFromInfoPage()" class="inline-flex items-center space-x-1.5 px-4 py-2 bg-cosmicSurfaceVariant hover:bg-gray-700 text-gray-300 border border-borderDark rounded-xl text-xs font-bold transition-all mb-4">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span>Go Back</span>
+            </button>
+            <div class="bg-cosmicSurface border border-borderDark rounded-3xl p-6 md:p-8 shadow-2xl max-w-4xl mx-auto space-y-6">
+                <div class="flex items-center space-x-3 border-b border-borderDark pb-4">
+                    <div class="w-10 h-10 rounded-xl bg-goldPrimary/10 border border-goldPrimary/30 flex items-center justify-center text-xl shadow-inner">
+                        ℹ️
+                    </div>
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-black text-white">About Daily Rewards Pro</h2>
+                        <p class="text-xs text-gray-400">Learn more about our vision, our features, and how we operate.</p>
+                    </div>
+                </div>
+                
+                <div class="space-y-4 text-sm text-gray-300 leading-relaxed">
+                    <p>
+                        Welcome to <strong class="text-white">Daily Rewards Pro</strong>, the premier digital loyalty and coin tracking system. We specialize in providing a transparent, engaging, and highly secure environment where users can participate in micro-achievements, daily rewards claims, and referral network systems.
+                    </p>
+                    <h3 class="text-base font-bold text-white mt-6">Our Mission</h3>
+                    <p>
+                        Our mission is to democratize rewards programs by leveraging modern web and mobile tech. We believe that loyalty points shouldn't be confusing or hidden behind complicated policies. By offering real-time coin ledgers, dynamic daily login cycles, and interactive referral networks, we give users full transparency and ownership over their loyalty points.
+                    </p>
+                    <h3 class="text-base font-bold text-white mt-6">How We Generate Value</h3>
+                    <p>
+                        Daily Rewards Pro partners with certified premium digital sponsors and publisher networks, including <strong class="text-goldLight">Google AdSense</strong>, to display responsive, high-quality, non-intrusive advertisements. The revenue generated from these sponsors is utilized to maintain our secure cloud infrastructure, support UPI bank payout disbursements, and fund further development.
+                    </p>
+                    <h3 class="text-base font-bold text-white mt-6">Our Values</h3>
+                    <ul class="list-disc pl-5 space-y-2 mt-2">
+                        <li><strong class="text-white">Security First:</strong> Every ledger transaction is securely encrypted and validated on our servers to eliminate botting or exploit vulnerabilities.</li>
+                        <li><strong class="text-white">User Centricity:</strong> Our UPI withdrawal system is designed with minimum friction and maximum support response times.</li>
+                        <li><strong class="text-white">Integrity:</strong> We enforce strict anti-fraud verification guidelines to protect our advertising partners and keep rewards fair for legitimate users.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- PRIVACY POLICY PAGE -->
+        <section id="privacyScreen" class="w-full hidden space-y-6">
+            <button onclick="goBackFromInfoPage()" class="inline-flex items-center space-x-1.5 px-4 py-2 bg-cosmicSurfaceVariant hover:bg-gray-700 text-gray-300 border border-borderDark rounded-xl text-xs font-bold transition-all mb-4">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span>Go Back</span>
+            </button>
+            <div class="bg-cosmicSurface border border-borderDark rounded-3xl p-6 md:p-8 shadow-2xl max-w-4xl mx-auto space-y-6">
+                <div class="flex items-center space-x-3 border-b border-borderDark pb-4">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-xl shadow-inner">
+                        🔒
+                    </div>
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-black text-white">Privacy Policy</h2>
+                        <p class="text-xs text-gray-400">Last updated: July 2026. Fully AdSense-compliant.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4 text-xs md:text-sm text-gray-300 leading-relaxed">
+                    <p>
+                        At Daily Rewards Pro, accessible from our mobile applications and development/production URLs, one of our main priorities is the privacy of our visitors. This Privacy Policy document contains types of information that are collected and recorded by Daily Rewards Pro and how we use it.
+                    </p>
+                    
+                    <h3 class="text-sm md:text-base font-bold text-white mt-6">Consent</h3>
+                    <p>By using our website or app, you hereby consent to our Privacy Policy and agree to its terms.</p>
+
+                    <h3 class="text-sm md:text-base font-bold text-white mt-6">Information We Collect</h3>
+                    <p>
+                        The personal information that you are asked to provide, and the reasons why you are asked to provide it, will be made clear to you at the point we ask you to provide your personal information.
+                    </p>
+                    <ul class="list-disc pl-5 space-y-2 mt-2">
+                        <li>If you sign up using Google Auth: we collect your display name, email address, profile photo URL, and secure authentication UID.</li>
+                        <li>If you submit a withdrawal request: we collect your requested payout amount and UPI address (UPI ID).</li>
+                        <li>If you contact us directly: we may receive additional information about you such as your name, email address, phone number, the contents of the message and/or attachments you may send us, and any other information you may choose to provide.</li>
+                    </ul>
+
+                    <h3 class="text-sm md:text-base font-bold text-white mt-6">How We Use Your Information</h3>
+                    <p>We use the information we collect in various ways, including to:</p>
+                    <ul class="list-disc pl-5 space-y-2 mt-2">
+                        <li>Provide, operate, and maintain our coin ledger and withdrawal system.</li>
+                        <li>Improve, personalize, and expand our platform.</li>
+                        <li>Understand and analyze how you use our platform.</li>
+                        <li>Develop new products, services, features, and functionality.</li>
+                        <li>Communicate with you, either directly or through one of our partners, including for customer service, to provide you with updates and other information relating to the website, and for marketing and promotional purposes.</li>
+                        <li>Detect and prevent fraud, multi-accounting, VPN abuse, or automated script execution.</li>
+                    </ul>
+
+                    <h3 class="text-sm md:text-base font-bold text-white mt-6">Log Files</h3>
+                    <p>
+                        Daily Rewards Pro follows a standard procedure of using log files. These files log visitors when they use app endpoints. This is standard for hosting services and a part of hosting services' analytics. The information collected by log files includes internet protocol (IP) addresses, browser type, Internet Service Provider (ISP), date and time stamp, referring/exit pages, and possibly the number of clicks. These are not linked to any information that is personally identifiable. The purpose of the information is for analyzing trends, administering the site, tracking users' movement on the website, and gathering demographic information.
+                    </p>
+
+                    <h3 class="text-sm md:text-base font-bold text-white mt-6">Google DoubleClick DART Cookie & Third-Party Advertisers</h3>
+                    <p>
+                        Google is one of the third-party vendors on our site. It also uses cookies, known as DART cookies, to serve ads to our site visitors based upon their visit to our site and other sites on the internet. However, visitors may choose to decline the use of DART cookies by visiting the Google ad and content network Privacy Policy at the following URL – <a href="https://policies.google.com/technologies/ads" class="text-goldPrimary hover:underline" target="_blank" rel="noopener noreferrer">https://policies.google.com/technologies/ads</a>
+                    </p>
+                    <p>
+                        Some of the advertisers on our site may use cookies and web beacons. Our advertising partners include <strong class="text-white">Google AdSense</strong>. Each of our advertising partners has their own Privacy Policy for their policies on user data. For easier access, we hyperlinked to their Privacy Policies below:
+                    </p>
+                    <ul class="list-disc pl-5 mt-2">
+                        <li>Google: <a href="https://policies.google.com/technologies/ads" class="text-goldPrimary hover:underline" target="_blank" rel="noopener noreferrer">https://policies.google.com/technologies/ads</a></li>
+                    </ul>
+
+                    <h3 class="text-sm md:text-base font-bold text-white mt-6">CCPA Privacy Rights (Do Not Sell My Personal Information)</h3>
+                    <p>Under the CCPA, among other rights, California consumers have the right to request that a business disclose the categories and specific pieces of personal data that a business has collected about consumers. You may contact us to exercise these rights.</p>
+
+                    <h3 class="text-sm md:text-base font-bold text-white mt-6">GDPR Data Protection Rights</h3>
+                    <p>We would like to make sure you are fully aware of all of your data protection rights. Every user is entitled to the following: the right to access, rectification, erasure, restrict processing, object to processing, and data portability.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TERMS & CONDITIONS PAGE -->
+        <section id="termsScreen" class="w-full hidden space-y-6">
+            <button onclick="goBackFromInfoPage()" class="inline-flex items-center space-x-1.5 px-4 py-2 bg-cosmicSurfaceVariant hover:bg-gray-700 text-gray-300 border border-borderDark rounded-xl text-xs font-bold transition-all mb-4">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span>Go Back</span>
+            </button>
+            <div class="bg-cosmicSurface border border-borderDark rounded-3xl p-6 md:p-8 shadow-2xl max-w-4xl mx-auto space-y-6">
+                <div class="flex items-center space-x-3 border-b border-borderDark pb-4">
+                    <div class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-xl shadow-inner">
+                        📋
+                    </div>
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-black text-white">Terms & Conditions</h2>
+                        <p class="text-xs text-gray-400">Strictly enforced terms of service to ensure ledger compliance.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4 text-xs md:text-sm text-gray-300 leading-relaxed">
+                    <p>
+                        Welcome to Daily Rewards Pro! These terms and conditions outline the rules and regulations for the use of Daily Rewards Pro's Website and Mobile App.
+                    </p>
+                    <p>
+                        By accessing this website we assume you accept these terms and conditions. Do not continue to use Daily Rewards Pro if you do not agree to take all of the terms and conditions stated on this page.
+                    </p>
+
+                    <h3 class="text-sm md:text-base font-bold text-white mt-6">Eligibility & Registration</h3>
+                    <p>
+                        To use our ledger and earn promotional coins, you must be at least 18 years of age or have parental/legal guardian consent. You agree to register using your actual Google Account. Registering under false credentials or automating signup flows is strictly prohibited.
+                    </p>
+
+                    <h3 class="text-sm md:text-base font-bold text-white mt-6">Strict Rules (Anti-Fraud Guidelines)</h3>
+                    <p class="text-red-400 font-bold">
+                        We enforce a strict zero-tolerance policy against fraudulent behavior. Engaging in any of the following acts will result in an immediate permanent ban, deletion of your ledger data, and complete forfeiture of any accumulated points:
+                    </p>
+                    <ul class="list-disc pl-5 space-y-2 mt-2 text-red-300">
+                        <li>Using Virtual Private Networks (VPNs), proxies, or Tor to spoof locations.</li>
+                        <li>Creating or logging into multiple accounts on a single hardware device.</li>
+                        <li>Utilizing bots, autoclickers, script injection, emulator environments, or specialized automation tools to bypass timers or claim coins.</li>
+                        <li>Deceptive manipulation of the referral system (such as self-referral schemes).</li>
+                        <li>Ad tampering or blocking.</li>
+                    </ul>
+
+                    <h3 class="text-sm md:text-base font-bold text-white mt-6">Rewards & Payout Verification</h3>
+                    <p>
+                        The "Coins" displayed in your ledger are virtual promotional points and have no intrinsic cash value until approved for redemption. Redemptions are subject to the following rules:
+                    </p>
+                    <ul class="list-disc pl-5 space-y-2 mt-2">
+                        <li>The minimum threshold for a payout request is <strong class="text-white">1000 coins</strong> (equivalent to a ₹10 payout value).</li>
+                        <li>All payout requests are routed to our administrative moderation queue for manual audit.</li>
+                        <li>Our administrators review account activity logs to verify legitimacy. Approval or rejection is at the sole discretion of our administrative team.</li>
+                        <li>Verified payments are processed within 24-48 business hours via UPI.</li>
+                    </ul>
+
+                    <h3 class="text-sm md:text-base font-bold text-white mt-6">Limitation of Liability</h3>
+                    <p>
+                        Daily Rewards Pro and its developers shall not be held liable for any damages, database connection losses, or service interruptions that cause coin balance discrepancies. We reserve the right to modify, pause, or terminate the rewards program at any time without prior notice.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- CONTACT US PAGE -->
+        <section id="contactScreen" class="w-full hidden space-y-6 animate-fadeIn">
+            <button onclick="goBackFromInfoPage()" class="inline-flex items-center space-x-1.5 px-4 py-2 bg-cosmicSurfaceVariant hover:bg-gray-700 text-gray-300 border border-borderDark rounded-xl text-xs font-bold transition-all mb-4">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span>Go Back</span>
+            </button>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-5xl mx-auto">
+                <!-- Left Column: Info & Details -->
+                <div class="bg-cosmicSurface border border-borderDark rounded-3xl p-6 md:p-8 shadow-2xl flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center space-x-3 border-b border-borderDark pb-4 mb-6">
+                            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-xl shadow-inner">
+                                ✉️
+                            </div>
+                            <div>
+                                <h2 class="text-xl md:text-2xl font-black text-white">Contact Us</h2>
+                                <p class="text-xs text-gray-400">Get in touch with our security & rewards support team.</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4 text-xs md:text-sm text-gray-300 leading-relaxed">
+                            <p>
+                                Have a question about your coin balance, a pending UPI payout, or our referral network? Our administrative support team is available 24/7 to review queries.
+                            </p>
+                            
+                            <div class="space-y-3 mt-6">
+                                <div class="flex items-center space-x-3">
+                                    <i data-lucide="mail" class="w-5 h-5 text-goldPrimary"></i>
+                                    <span>support@dailyrewardspro.com</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <i data-lucide="clock" class="w-5 h-5 text-goldPrimary"></i>
+                                    <span>Expected Response Time: Under 12 Hours</span>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <i data-lucide="map-pin" class="w-5 h-5 text-goldPrimary"></i>
+                                    <span>Tech Hub Office, Sector 62, Noida, UP, India</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 bg-goldPrimary/5 border border-goldPrimary/20 p-4 rounded-xl text-xs text-goldLight flex items-start gap-2">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                        <p>
+                            <strong>Important Tip:</strong> If submitting a ticket about a payout request, please provide your logged email address and UPI ID for fast database lookup.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Right Column: Interactive Form -->
+                <div class="bg-cosmicSurface border border-borderDark rounded-3xl p-6 md:p-8 shadow-2xl">
+                    <h3 class="text-lg font-extrabold text-white mb-4">Send a Support Ticket</h3>
+                    <form id="supportContactForm" onsubmit="handleSupportSubmit(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Your Full Name</label>
+                            <input type="text" id="contactName" required placeholder="Enter your name" class="w-full h-11 bg-cosmicBg border border-borderDark focus:border-goldPrimary rounded-xl px-4 text-sm text-white focus:outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Email Address</label>
+                            <input type="email" id="contactEmail" required placeholder="name@example.com" class="w-full h-11 bg-cosmicBg border border-borderDark focus:border-goldPrimary rounded-xl px-4 text-sm text-white focus:outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Subject</label>
+                            <input type="text" id="contactSubject" required placeholder="Withdrawal / Referral / General Query" class="w-full h-11 bg-cosmicBg border border-borderDark focus:border-goldPrimary rounded-xl px-4 text-sm text-white focus:outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">Your Message</label>
+                            <textarea id="contactMessage" required rows="4" placeholder="How can our support team help you today?" class="w-full bg-cosmicBg border border-borderDark focus:border-goldPrimary rounded-xl p-4 text-sm text-white focus:outline-none transition-all resize-none"></textarea>
+                        </div>
+                        <button type="submit" class="w-full h-12 bg-gradient-to-r from-goldPrimary to-amber-500 hover:from-goldLight hover:to-goldPrimary text-cosmicBg font-black text-sm rounded-xl transition-all shadow-md flex items-center justify-center space-x-2">
+                            <i data-lucide="send" class="w-4 h-4 text-cosmicBg"></i>
+                            <span>Submit Secure Ticket</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- FAQ PAGE -->
+        <section id="faqScreen" class="w-full hidden space-y-6">
+            <button onclick="goBackFromInfoPage()" class="inline-flex items-center space-x-1.5 px-4 py-2 bg-cosmicSurfaceVariant hover:bg-gray-700 text-gray-300 border border-borderDark rounded-xl text-xs font-bold transition-all mb-4">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span>Go Back</span>
+            </button>
+            <div class="bg-cosmicSurface border border-borderDark rounded-3xl p-6 md:p-8 shadow-2xl max-w-4xl mx-auto space-y-6">
+                <div class="flex items-center space-x-3 border-b border-borderDark pb-4">
+                    <div class="w-10 h-10 rounded-xl bg-goldPrimary/10 border border-goldPrimary/30 flex items-center justify-center text-xl shadow-inner">
+                        ❓
+                    </div>
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-black text-white">Frequently Asked Questions</h2>
+                        <p class="text-xs text-gray-400">Find instant answers to common questions about Daily Rewards Pro.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- FAQ 1 -->
+                    <div class="border border-borderDark bg-cosmicBg/55 rounded-2xl overflow-hidden transition-all">
+                        <button onclick="toggleFaqAccordion(1)" class="w-full p-5 text-left flex items-center justify-between text-white hover:text-goldPrimary font-bold text-sm md:text-base">
+                            <span>What is Daily Rewards Pro?</span>
+                            <i data-lucide="chevron-down" id="faqIcon-1" class="w-5 h-5 text-gray-400 transition-transform"></i>
+                        </button>
+                        <div id="faqContent-1" class="hidden px-5 pb-5 text-xs md:text-sm text-gray-400 leading-relaxed border-t border-borderDark/30 pt-3 bg-cosmicSurface/30">
+                            Daily Rewards Pro is a digital loyalty ledger and gamified incentive program. Users can log in daily to stack coins, refer their network of friends, and request cash disbursements securely to their UPI accounts.
+                        </div>
+                    </div>
+
+                    <!-- FAQ 2 -->
+                    <div class="border border-borderDark bg-cosmicBg/55 rounded-2xl overflow-hidden transition-all">
+                        <button onclick="toggleFaqAccordion(2)" class="w-full p-5 text-left flex items-center justify-between text-white hover:text-goldPrimary font-bold text-sm md:text-base">
+                            <span>How do I earn coins?</span>
+                            <i data-lucide="chevron-down" id="faqIcon-2" class="w-5 h-5 text-gray-400 transition-transform"></i>
+                        </button>
+                        <div id="faqContent-2" class="hidden px-5 pb-5 text-xs md:text-sm text-gray-400 leading-relaxed border-t border-borderDark/30 pt-3 bg-cosmicSurface/30">
+                            You earn coins by logging in once every 24 hours to click the Daily Claim button (+10 coins), referring new friends via your referral link (+50 coins for you and +50 for them), and watching rewarded premium ad broadcasts (Coming Soon once Google AdSense is approved).
+                        </div>
+                    </div>
+
+                    <!-- FAQ 3 -->
+                    <div class="border border-borderDark bg-cosmicBg/55 rounded-2xl overflow-hidden transition-all">
+                        <button onclick="toggleFaqAccordion(3)" class="w-full p-5 text-left flex items-center justify-between text-white hover:text-goldPrimary font-bold text-sm md:text-base">
+                            <span>How do I request a withdrawal?</span>
+                            <i data-lucide="chevron-down" id="faqIcon-3" class="w-5 h-5 text-gray-400 transition-transform"></i>
+                        </button>
+                        <div id="faqContent-3" class="hidden px-5 pb-5 text-xs md:text-sm text-gray-400 leading-relaxed border-t border-borderDark/30 pt-3 bg-cosmicSurface/30">
+                            Once your ledger balance reaches at least 1,000 coins, navigate to the Withdraw tab, enter your exact UPI ID and the number of coins to withdraw, and tap submit. This submits a secure record to the admin dashboard for verification and payout.
+                        </div>
+                    </div>
+
+                    <!-- FAQ 4 -->
+                    <div class="border border-borderDark bg-cosmicBg/55 rounded-2xl overflow-hidden transition-all">
+                        <button onclick="toggleFaqAccordion(4)" class="w-full p-5 text-left flex items-center justify-between text-white hover:text-goldPrimary font-bold text-sm md:text-base">
+                            <span>Why is my withdrawal status "Pending"?</span>
+                            <i data-lucide="chevron-down" id="faqIcon-4" class="w-5 h-5 text-gray-400 transition-transform"></i>
+                        </button>
+                        <div id="faqContent-4" class="hidden px-5 pb-5 text-xs md:text-sm text-gray-400 leading-relaxed border-t border-borderDark/30 pt-3 bg-cosmicSurface/30">
+                            To ensure high compliance with Google AdSense rules and prevent fraudulent bot networks, all payouts are manually verified by an administrator. Administrators audit the account's ledger patterns, referral integrity, and IP logs. This verification process typically takes 24 to 48 hours.
+                        </div>
+                    </div>
+
+                    <!-- FAQ 5 -->
+                    <div class="border border-borderDark bg-cosmicBg/55 rounded-2xl overflow-hidden transition-all">
+                        <button onclick="toggleFaqAccordion(5)" class="w-full p-5 text-left flex items-center justify-between text-white hover:text-goldPrimary font-bold text-sm md:text-base">
+                            <span>Can I use a VPN, multi-accounts, or emulators?</span>
+                            <i data-lucide="chevron-down" id="faqIcon-5" class="w-5 h-5 text-gray-400 transition-transform"></i>
+                        </button>
+                        <div id="faqContent-5" class="hidden px-5 pb-5 text-xs md:text-sm text-gray-400 leading-relaxed border-t border-borderDark/30 pt-3 bg-cosmicSurface/30 text-red-300">
+                            <strong>Absolutely NOT.</strong> We have state-of-the-art server-side checks. Using VPNs, emulators, bot scripts, cloning apps, or signing up on multiple accounts from the same physical device violates our Terms of Conditions. Accounts violating these rules are permanently banned and coins are deleted.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- WITHDRAWAL POLICY PAGE -->
+        <section id="withdrawalPolicyScreen" class="w-full hidden space-y-6">
+            <button onclick="goBackFromInfoPage()" class="inline-flex items-center space-x-1.5 px-4 py-2 bg-cosmicSurfaceVariant hover:bg-gray-700 text-gray-300 border border-borderDark rounded-xl text-xs font-bold transition-all mb-4">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span>Go Back</span>
+            </button>
+            <div class="bg-cosmicSurface border border-borderDark rounded-3xl p-6 md:p-8 shadow-2xl max-w-4xl mx-auto space-y-6">
+                <div class="flex items-center space-x-3 border-b border-borderDark pb-4">
+                    <div class="w-10 h-10 rounded-xl bg-goldPrimary/10 border border-goldPrimary/30 flex items-center justify-center text-xl shadow-inner">
+                        💸
+                    </div>
+                    <div>
+                        <h2 class="text-xl md:text-2xl font-black text-white">Withdrawal & Payout Policy</h2>
+                        <p class="text-xs text-gray-400">Read about our secure coin redemptions, verification queues, and processing times.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-4 text-xs md:text-sm text-gray-300 leading-relaxed">
+                    <p>
+                        Daily Rewards Pro takes secure rewards tracking seriously. To prevent fraudulent botting, multi-accounting, and system abuse, all withdrawal requests are governed by this strict **Withdrawal Policy**. By submitting a payout request, you fully agree to these guidelines.
+                    </p>
+
+                    <h3 class="text-sm md:text-base font-bold text-white mt-6">1. Conversion Rates & Limits</h3>
+                    <p>
+                        Our virtual coins are promotional loyalty points that can be redeemed for UPI cash payouts subject to administrative verification:
+                    </p>
+                    <ul class="list-disc pl-5 space-y-2 mt-2">
+                        <li><strong>Conversion Ratio:</strong> 100 virtual coins = ₹1 INR.</li>
+                        <li><strong>Minimum Payout Threshold:</strong> 1,000 coins (equivalent to ₹10). You cannot request a withdrawal for any amount below this limit.</li>
+                        <li><strong>Daily Limits:</strong> Users may submit up to 1 payout request per 24 hours. The maximum daily redemption limit is 10,000 coins (₹100) to ensure pool sustainability.</li>
+                    </ul>
+
+                    <h3 class="text-sm md:text-base font-bold text-white mt-6">2. Step-by-Step Payout Process</h3>
+                    <p>
+                        To successfully claim your rewards, follow these official steps:
+                    </p>
+                    <ol class="list-decimal pl-5 space-y-2 mt-2">
+                        <li>Reach a minimum balance of <strong>1,000 coins</strong> inside your secure ledger.</li>
+                        <li>Navigate to the <strong>Withdrawal Portal</strong> tab on your dashboard.</li>
+                        <li>Enter your valid, personal <strong>UPI ID</strong> (e.g., name@okaxis, phone@paytm) and the number of coins to redeem.</li>
+                        <li>Tap the <strong>Request Payout</strong> button. The coins will temporarily enter the <strong>"Pending"</strong> status and undergo compliance review.</li>
+                    </ol>
+
+                    <h3 class="text-sm md:text-base font-bold text-white mt-6">3. Secure Manual Verification Queue</h3>
+                    <p>
+                        To comply with publisher guidelines and maintain advertiser trust, **no payouts are processed automatically**. 
+                    </p>
+                    <p>
+                        Each request is queued for manual analysis by our administrator team. Our secure review includes auditing:
+                    </p>
+                    <ul class="list-disc pl-5 space-y-2 mt-2">
+                        <li>Login frequency logs and claim schedules (detection of auto-clickers or macros).</li>
+                        <li>IP addresses (detection of VPNs, proxies, or Tor nodes).</li>
+                        <li>Referral networks logs (ensuring referred friends are legitimate unique devices).</li>
+                        <li>Device signatures (confirming only 1 account per physical mobile device).</li>
+                    </ul>
+                    <p class="text-amber-400">
+                        The standard processing time is <strong>24 to 48 business hours</strong>. You can monitor the real-time status (Pending, Approved, Rejected) directly under your Withdrawal History.
+                    </p>
+
+                    <h3 class="text-sm md:text-base font-bold text-white mt-6">4. Grounds for Immediate Forfeiture and Ban</h3>
+                    <p class="text-red-400 font-bold">
+                        If an administrator detects any of the following during review, the payout request will be immediately REJECTED, the account will be permanently banned from the database, and any accumulated points will be forfeited:
+                    </p>
+                    <ul class="list-disc pl-5 space-y-2 mt-2 text-red-300">
+                        <li>Using emulator software, script injectors, virtual operating systems, or cloning apps.</li>
+                        <li>Falsifying UPI IDs, registering multiple user accounts on the same device, or using temporary/disposable emails.</li>
+                        <li>Using software to intercept or manipulate the Firebase client-side request packets.</li>
+                        <li>Sponsor ad blocking, ad tampering, or script automation.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <!-- Drawer for Firebase Configuration -->
@@ -943,19 +1417,75 @@ service cloud.firestore {
         <span id="toastText" class="text-white">Sample Toast Message</span>
     </div>
 
+    <!-- Cookie Consent Banner (Requirement 10) -->
+    <div id="cookieConsentBanner" class="fixed bottom-6 left-6 right-6 md:left-auto md:right-6 md:max-w-md bg-cosmicSurface border border-goldPrimary/20 rounded-2xl p-5 shadow-2xl z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300">
+        <div class="flex items-start gap-3">
+            <div class="p-2 bg-goldPrimary/10 border border-goldPrimary/20 rounded-xl text-goldPrimary shrink-0 mt-0.5">
+                <i data-lucide="cookie" class="w-5 h-5"></i>
+            </div>
+            <div class="space-y-3">
+                <h4 class="text-sm font-bold text-white">We Value Your Privacy</h4>
+                <p class="text-xs text-gray-400 leading-relaxed">
+                    We use cookies to secure your sign-in, prevent account abuse, analyze server logs, and display personalized ads via Google AdSense.
+                </p>
+                <div class="flex gap-2">
+                    <button onclick="acceptAllCookies()" class="px-4 py-2 bg-gradient-to-r from-goldPrimary to-amber-500 hover:from-goldLight hover:to-goldPrimary text-cosmicBg text-xs font-black rounded-lg transition-all shadow-sm">
+                        Accept All
+                    </button>
+                    <button onclick="showInfoPage('privacy')" class="px-3 py-2 bg-cosmicSurfaceVariant hover:bg-gray-700 border border-borderDark text-gray-300 text-xs font-bold rounded-lg transition-all">
+                        Cookie Policy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer Information -->
-    <footer class="border-t border-borderDark bg-cosmicSurface/30 py-4 w-full mt-12">
-        <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between text-xs text-gray-500 gap-2">
-            <p>© 2026 Daily Rewards Pro. Ledger module configured with Google AdSense and Cloud Firestore Sync.</p>
-            <div class="flex items-center space-x-4">
-                <button onclick="triggerDownloadZip()" class="text-goldPrimary hover:underline font-bold flex items-center space-x-1">
-                    <i data-lucide="download" class="w-3.5 h-3.5 animate-pulse"></i>
-                    <span>Export Web Source (ZIP)</span>
-                </button>
-                <span class="text-gray-700">•</span>
-                <a href="#" class="hover:text-goldPrimary transition-colors">Privacy Policy</a>
-                <span class="text-gray-700">•</span>
-                <a href="#" class="hover:text-goldPrimary transition-colors">Terms of Service</a>
+    <footer class="border-t border-borderDark bg-cosmicSurface/50 backdrop-blur-sm py-8 w-full mt-12 shrink-0">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <!-- Branding & Disclaimer -->
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-6 h-6 rounded bg-goldPrimary/10 border border-goldPrimary/30 flex items-center justify-center text-xs">
+                            🪙
+                        </div>
+                        <span class="text-sm font-bold text-white">Daily Rewards Pro</span>
+                    </div>
+                    <p class="text-xs text-gray-400 leading-relaxed">
+                        The ultimate high-fidelity secure web coin ledger. Track your daily claims, grow your referral network, and log points safely.
+                    </p>
+                </div>
+                <!-- Navigation Links -->
+                <div class="space-y-2">
+                    <h5 class="text-xs font-bold text-gray-300 uppercase tracking-wider">Information Hub</h5>
+                    <div class="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                        <button onclick="showInfoPage('about')" class="text-left text-gray-400 hover:text-goldPrimary transition-colors">About Us</button>
+                        <button onclick="showInfoPage('privacy')" class="text-left text-gray-400 hover:text-goldPrimary transition-colors">Privacy Policy</button>
+                        <button onclick="showInfoPage('terms')" class="text-left text-gray-400 hover:text-goldPrimary transition-colors">Terms & Conditions</button>
+                        <button onclick="showInfoPage('contact')" class="text-left text-gray-400 hover:text-goldPrimary transition-colors">Contact Us</button>
+                        <button onclick="showInfoPage('faq')" class="text-left text-gray-400 hover:text-goldPrimary transition-colors">FAQ</button>
+                        <button onclick="showInfoPage('withdrawalPolicy')" class="text-left text-gray-400 hover:text-goldPrimary transition-colors">Withdrawal Policy</button>
+                    </div>
+                </div>
+                <!-- Support & Export -->
+                <div class="space-y-2">
+                    <h5 class="text-xs font-bold text-gray-300 uppercase tracking-wider">Source Code</h5>
+                    <div class="flex flex-col space-y-2 text-xs">
+                        <button onclick="triggerDownloadZip()" class="text-left text-goldPrimary hover:underline font-bold flex items-center space-x-1">
+                            <i data-lucide="download" class="w-3.5 h-3.5 animate-pulse"></i>
+                            <span>Export Web Source (ZIP)</span>
+                        </button>
+                        <p class="text-[10px] text-gray-500">Contact: support@dailyrewardspro.com</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-borderDark/40 pt-6 flex flex-col md:flex-row items-center justify-between text-[11px] text-gray-500 gap-4">
+                <p>© 2026 Daily Rewards Pro. Ledger module integrated with Google AdSense and Cloud Firestore.</p>
+                <div class="bg-cosmicSurfaceVariant/50 px-3 py-1.5 rounded-lg border border-borderDark text-[10px] text-gray-400 max-w-md text-center md:text-right leading-normal">
+                    ⚠️ <span class="font-bold">Verification Disclaimer</span>: Rewards are subject to manual validation. Deceptive practices forfeit all points.
+                </div>
             </div>
         </div>
     </footer>
